@@ -12,6 +12,9 @@ namespace simplefs
 	class Packet
 	{
 	public:
+		static Packet* fromId(int id);
+
+
 		virtual int getBaseLength() = 0;
 		virtual int getRemainderLength() { return 0; } //for packets with varying size
 
@@ -27,11 +30,11 @@ namespace simplefs
 	{
 	public:
 		typedef enum {
-			CREATE = 'CREA',
-			OPEN = 'OPEN',
-			CHMD = 'CHMD',
-			UNLINK = 'ULNK',
-			MKDIR = 'MKDR'
+			Create = 'CREA',
+			Open = 'OPEN',
+			Chmd = 'CHMD',
+			Unlink = 'ULNK',
+			Mkdir = 'MKDR'
 		} OpType;
 
 		OperationWithPathRequest(OpType type) : type(type) {}

@@ -38,13 +38,7 @@ Packet* Connector::receive()
 	if (read(socketFD, &id, sizeof(unsigned int)) == -1)
 		return nullptr;
 
-	Packet* received = nullptr;
-	if (id == OKResponse::ID)
-		received = new OKResponse;
-	else if (id == ErrorResponse::ID)
-		received = new ErrorResponse;
-	else if (id == ShmemPtrResponse::ID)
-		received = new ShmemPtrResponse;
+	Packet* received = Packet::fromId(id);
 
 	if (received == nullptr)
 		return nullptr;
