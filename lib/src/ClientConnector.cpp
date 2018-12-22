@@ -5,7 +5,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "utils/config.h"
+#include "utils/src/config.h"
 
 using namespace simplefs;
 

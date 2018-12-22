@@ -1,4 +1,4 @@
 add_library(lib
-	ClientConnector.cpp)
+	src/ClientConnector.cpp)
 
 target_link_libraries(lib utils)
