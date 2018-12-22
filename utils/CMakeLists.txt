@@ -7,5 +7,6 @@ add_library(utils
 	src/WriteRequest.cpp
 	src/ErrorResponse.cpp
 	src/OKResponse.cpp
-	src/ShmemPtrResponse.cpp)
+	src/ShmemPtrResponse.cpp
+	src/Connector.cpp)
 
