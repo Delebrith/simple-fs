@@ -14,6 +14,7 @@ const int BACKLOG_SIZE = 20;
 
 ServerListener::ServerListener()
 {
+	unlink(DAEMON_SOCKET_PATH);
 	socketFD = socket(AF_UNIX, SOCK_STREAM, 0);
 
 	if (socketFD == -1)
