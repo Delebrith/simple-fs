@@ -2,5 +2,5 @@
 
 namespace simplefs
 {
-	const char* DAEMON_SOCKET_PATH = "/tmp/simplefs_daemon_socket.socket";
+	extern const char* DAEMON_SOCKET_PATH;
 }

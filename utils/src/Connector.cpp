@@ -59,8 +59,12 @@ Packet* Connector::receive()
 
 void Connector::setSocket(int socket)
 {
-	ok = true;
 	socketFD = socket;
+}
+
+void Connector::setOk(bool ok)
+{
+	this->ok = ok;
 }
 
 bool Connector::isOk()

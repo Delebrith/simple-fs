@@ -8,5 +8,6 @@ add_library(utils
 	src/ErrorResponse.cpp
 	src/OKResponse.cpp
 	src/ShmemPtrResponse.cpp
-	src/Connector.cpp)
+	src/Connector.cpp
+	src/config.cpp)
 

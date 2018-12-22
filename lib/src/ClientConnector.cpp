@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
 
@@ -16,6 +17,8 @@ ClientConnector::ClientConnector()
 	if (sock == -1)
 		return;
 
+	setSocket(sock);
+
 	struct sockaddr_un addr;
 	memset(&addr, 0, sizeof(struct sockaddr_un));
 
@@ -25,6 +28,10 @@ ClientConnector::ClientConnector()
 	if (connect(sock, (const sockaddr*)&addr, sizeof(struct sockaddr_un)) == -1)
 		return;
 	
-	setSocket(sock);
+	pid_t pid = getpid();
+	if (write(sock, &pid, sizeof(pid_t)) == -1)
+		return;
+
+	setOk(false);
 }
 
