@@ -8,9 +8,15 @@ struct Directory
     InodeDirectoryEntry *inodesArray;
 
     Directory(unsigned int parentInodeId, unsigned int inodeId);
+
+    // If you want to modify name of the entry delete one entry
+    // and replace it with new one with method below to avoid conflicting names
     void addEntry(InodeDirectoryEntry entry);
     void deleteEntry(unsigned int inodeId);
-    InodeDirectoryEntry* getByName(char* inodeName);
+
     const char* listDirectory();
+
+    InodeDirectoryEntry* getByName(char* inodeName);
+
     ~Directory();
 };

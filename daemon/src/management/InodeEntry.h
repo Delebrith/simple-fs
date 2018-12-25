@@ -7,7 +7,12 @@ struct InodeEntry
 
 struct InodeDirectoryEntry: InodeEntry
 {
-    char* inodeName;
+    // please, do not modify inodeName after adding to directory to avoid conflicting names
+    char* inodeName = nullptr;
+
+    InodeDirectoryEntry();
+    InodeDirectoryEntry(unsigned int inodeId, const char* inodeName);
+    ~InodeDirectoryEntry();
 };
 
 struct InodeListEntry: InodeEntry

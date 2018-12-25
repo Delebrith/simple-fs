@@ -10,11 +10,13 @@ Directory::Directory(unsigned int parentInodeId, unsigned int inodeId)
 
     // parent directory
     inodesArray[0].inodeId = parentInodeId;
-    inodesArray[0].inodeName = const_cast<char *>("..");
+    inodesArray[0].inodeName = new char[3];
+    strcpy(inodesArray[0].inodeName, "..");
 
     // newly created directory
     inodesArray[1].inodeId = inodeId;
-    inodesArray[1].inodeName = const_cast<char *>(".");
+    inodesArray[1].inodeName = new char[2];
+    strcpy(inodesArray[1].inodeName, ".");
 }
 
 void Directory::addEntry(InodeDirectoryEntry entry)
@@ -43,6 +45,9 @@ void Directory::deleteEntry(unsigned int inodeId)
             InodeDirectoryEntry* old = inodesArray;
             inodesArray = new InodeDirectoryEntry[inodesCount--];
 
+            for (int j = 0; j < i; j++) {
+                inodesArray[j] = old[j];
+            }
             for (int j = i; j < inodesCount; j++) {
                 inodesArray[j] = old[j+1];
             }
