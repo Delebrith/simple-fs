@@ -33,7 +33,7 @@ void Directory::addEntry(InodeDirectoryEntry entry)
     inodesArray[inodesCount] = entry;
     inodesCount++;
 
-    delete  old;
+    delete[] old;
 }
 
 void Directory::deleteEntry(unsigned int inodeId)
@@ -47,7 +47,7 @@ void Directory::deleteEntry(unsigned int inodeId)
                 inodesArray[j] = old[j+1];
             }
 
-            delete old;
+            delete[] old;
         }
         break;
     }
