@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bits/exception.h>
+#include <exception>
 
 class DiskException : public std::exception
 {
