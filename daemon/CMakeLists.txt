@@ -6,6 +6,7 @@ add_executable(daemon
 		src/management/InodeList.cpp
 		src/management/UsageMap.cpp
 		src/management/DiskException.h
-		src/management/InodeDirectoryEntry.cpp)
+		src/management/InodeDirectoryEntry.cpp
+	src/logging/Log.cpp)
 
 target_link_libraries(daemon utils)
