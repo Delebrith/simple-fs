@@ -2,10 +2,17 @@
 #include "UsageMap.h"
 #include "DiskException.h"
 
-UsageMap::UsageMap(int size)
+/*UsageMap::UsageMap(int size)
 {
     this->size = size;
     this->blocks = new unsigned char[size];
+    *this->blocks = {0};
+}*/
+
+UsageMap::UsageMap(int size, unsigned char *addr)
+{
+    this->size = size;
+    this->blocks = addr;
     *this->blocks = {0};
 }
 
@@ -31,5 +38,5 @@ void UsageMap::markBlocks(int from, int to, bool free)
 
 UsageMap::~UsageMap()
 {
-    delete[] blocks;
+    // delete[] blocks;
 }
