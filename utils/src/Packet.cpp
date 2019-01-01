@@ -8,6 +8,11 @@ int Packet::getTotalLength()
 	return this->getBaseLength() + this->getRemainderLength();
 }
 
+int Packet::getId()
+{
+	return id;
+}
+
 Packet* Packet::fromId(int id)
 {
 	if (id == OperationWithPathRequest::Create)	return new OperationWithPathRequest(OperationWithPathRequest::Create);
@@ -22,6 +27,7 @@ Packet* Packet::fromId(int id)
 	if (id == OKResponse::ID)			return new OKResponse;
 	if (id == ErrorResponse::ID)			return new ErrorResponse;
 	if (id == ShmemPtrResponse::ID)			return new ShmemPtrResponse;
+	if (id == FDResponse::ID)			return new FDResponse;
 
 	return nullptr;
 }
