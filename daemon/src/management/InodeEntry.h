@@ -12,10 +12,11 @@ struct InodeDirectoryEntry: InodeEntry
     char inodeName[256];
     InodeDirectoryEntry();
     InodeDirectoryEntry(unsigned int inodeId, const char* inodeName);
+    void init(unsigned int inodeId, const char* inodeName);
     ~InodeDirectoryEntry();
 };
 
 struct InodeListEntry: InodeEntry
 {
-    unsigned int inodeAddress;
+    unsigned int inodeAddress; // block num
 };

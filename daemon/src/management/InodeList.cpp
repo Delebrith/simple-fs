@@ -1,34 +1,33 @@
 #include "InodeList.h"
 #include "DiskException.h"
 
-InodeList::InodeList(unsigned int maxSize)
+InodeList::InodeList(DiskDescriptor* dd, InodeListEntry* addr)
 {
-    this->maxSize = maxSize;
-    this->inodesCount = 0;
-    this->inodesArray = new InodeListEntry[maxSize];
+    this->diskDescriptor = dd;
+    this->inodesArray = addr;
 }
 
 void InodeList::addInodeEntry(InodeListEntry inodeListEntry)
 {
-    if (inodesCount == maxSize)
+    if (diskDescriptor->inodesCount == diskDescriptor->maxInodesCount)
         throw DiskException("Too many inodes nodes");
 
-    for (int i = 0; i < inodesCount; i++) {
+    for (int i = 0; i < diskDescriptor->inodesCount; i++) {
         if (inodesArray[i].inodeId == inodeListEntry.inodeId)
             throw DiskException("Inode id duplicate");
     }
-    inodesArray[inodesCount] = inodeListEntry;
-    inodesCount++;
+    inodesArray[diskDescriptor->inodesCount] = inodeListEntry;
+    diskDescriptor->inodesCount++;
 }
 
 void InodeList::deleteInodeEntry(unsigned int inodeId)
 {
-    for (int i = 0; i < inodesCount; i++) {
+    for (int i = 0; i < diskDescriptor->inodesCount; i++) {
         if (inodesArray[i].inodeId == inodeId){
-            for (int j = i; j < inodesCount - 1; j++) {
+            for (int j = i; j < diskDescriptor->inodesCount - 1; j++) {
                 inodesArray[j] = inodesArray[j+1];
             }
-            inodesCount--;
+            diskDescriptor->inodesCount--;
             return;
         }
     }
@@ -37,7 +36,7 @@ void InodeList::deleteInodeEntry(unsigned int inodeId)
 
 InodeListEntry* InodeList::getById(unsigned int inodeId)
 {
-    for (int i = 0; i < inodesCount; i++) {
+    for (int i = 0; i < diskDescriptor->inodesCount; i++) {
         if (inodesArray[i].inodeId == inodeId) {
             return &inodesArray[i];
         }

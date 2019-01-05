@@ -1,14 +1,14 @@
 #pragma once
 
 #include "InodeEntry.h"
+#include "DiskDescriptor.h"
 
 struct InodeList
 {
-    unsigned int maxSize;
-    unsigned int inodesCount;
+    DiskDescriptor* diskDescriptor;
     InodeListEntry* inodesArray;
 
-    InodeList(unsigned int maxSize);
+    InodeList(DiskDescriptor* dd, InodeListEntry* addr);
     void addInodeEntry(InodeListEntry inodeListEntry);
     void deleteInodeEntry(unsigned int inodeId);
     InodeListEntry* getById(unsigned int inodeId);

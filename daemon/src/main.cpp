@@ -2,24 +2,39 @@
 #include <sys/shm.h>
 #include <errno.h>
 #include <stdio.h>
+#include <cstring>
 #include "management/DiskDescriptor.h"
 #include "management/InodeList.h"
 #include "management/UsageMap.h"
+#include "diskfunctions/DiskOperations.h"
 
 const int INODES_COUNT = 100;
-const int BLOCK_SIZE = 512;
-const int FS_SIZE = 512 * 100;
+const int BLOCK_SIZE  = 512;
+const int FS_SIZE  = 512 * 100;
+
+DiskOperations* diskOps;
 
 
-int inodetableaddr;
 
-unsigned int ceil(unsigned int up, unsigned int down)
+void printUsageMap()
 {
-    unsigned int result = up / down;
-    if (up % down != 0)
-        ++result;
-    result *= down;
-    return result;
+    for (int x = 0; x < diskOps->um->size; ++x)
+    {
+        printf("%d ", diskOps->um->blocks[x]);
+    }
+    printf("\n");
+}
+
+void printInodeParams(int i)
+{
+    InodeListEntry id = diskOps->inodeList->inodesArray[i];
+    printf("%d %d\n", id.inodeId, id.inodeAddress);
+}
+
+void printInodes()
+{
+    for (int i = 0; i < diskOps->ds->inodesCount; ++i)
+        printInodeParams(i);
 }
 
 int main(int argc, const char** argv)
@@ -30,40 +45,30 @@ int main(int argc, const char** argv)
         return -1;
     else if (FS_SIZE % BLOCK_SIZE != 0)
         return -1;
-    // TO-DO: create shm file
-    key_t key = ftok("/dev/shm/miau", IPC_PRIVATE);
-    if (key == -1)
+
+
+    diskOps = new DiskOperations(INODES_COUNT, BLOCK_SIZE, FS_SIZE);
+
+    if (diskOps -> initShm() == -1)
     {
         printf("%d\n", errno);
-        return -1;
+        return 1;
     }
-    int shmid = shmget(key, FS_SIZE, 0777 | IPC_CREAT);
-    if (shmid == -1)
-    {
-        printf("%d\n", errno);
-        return -1;
-    }
-    char* shmaddr = (char*)shmat(shmid, (void*)0,0);
+    diskOps -> initDiskStructures();
+    diskOps -> initRoot();
 
-    DiskDescriptor* ds = (DiskDescriptor*)shmaddr;
-    ds->blocksCount = FS_SIZE / BLOCK_SIZE;
-    ds->inodesCount = INODES_COUNT;
-    ds->volumeId = 0;
-    ds->volumeName = "XD ヽ༼ຈل͜ຈ༽ﾉ";
+    printUsageMap();
+    printInodes();
 
-    unsigned char* bitmap = (unsigned char*)(shmaddr+BLOCK_SIZE);
-   // bitmap[10] = (unsigned char)4;
-   // for (int i = 0; i < 12; ++i)
-   //     printf("%d", bitmap[i]);
-    UsageMap* um = new UsageMap(ds->blocksCount, bitmap);
+    diskOps->mkdir("/XD1");
+    diskOps->mkdir("/XD2");
+    diskOps->mkdir("/XD3");
 
-    inodetableaddr = BLOCK_SIZE + ceil(ds->blocksCount, BLOCK_SIZE);
+    printUsageMap();
+    printInodes();
 
-    // TO-DO: Mark used bloki iksde
+    delete diskOps;
 
-    shmdt(shmaddr);
-
-    shmctl(shmid, IPC_RMID, NULL);
     return 0;
 }
 

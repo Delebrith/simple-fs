@@ -13,7 +13,9 @@ UsageMap::UsageMap(int size, unsigned char *addr)
 {
     this->size = size;
     this->blocks = addr;
-    *this->blocks = {0};
+    for (int x = 0; x < size; ++x)
+        *(this->blocks + x) = 0;
+
 }
 
 void UsageMap::markBlocks(int from, int to, bool free)
@@ -34,6 +36,26 @@ void UsageMap::markBlocks(int from, int to, bool free)
     for (int i = from; i < to; i++) {
         blocks[i] = value;
     }
+}
+
+int UsageMap::getFreeBlocks(unsigned int requiredBlocks)
+{
+    unsigned int freeBlocks = 0;
+    unsigned int firstBlock = 0;
+    for (int i = 0; i < size; ++i)
+    {
+        if (blocks[i] == FREE)
+        {
+            if (freeBlocks == 0)
+                firstBlock = i;
+            ++freeBlocks;
+        }
+        else
+            freeBlocks = 0;
+        if (freeBlocks == requiredBlocks)
+            return firstBlock;
+    }
+    return -1;
 }
 
 UsageMap::~UsageMap()

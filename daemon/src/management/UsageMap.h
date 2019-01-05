@@ -14,5 +14,7 @@ struct UsageMap
     // free = true if blocks will be freed, false if blocks will be allocated
     void markBlocks(int from, int to, bool free);
 
+    int getFreeBlocks(unsigned int requiredBlocks);
+
     ~UsageMap();
 };
