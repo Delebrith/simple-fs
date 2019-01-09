@@ -4,6 +4,9 @@
 #include "daemon/src/management/UsageMap.h"
 #include "daemon/src/management/InodeList.h"
 #include "daemon/src/management/Inode.h"
+#include "utils/src/IPCPackets.h"
+
+using namespace simplefs;
 
 struct DiskOperations
 {
@@ -22,6 +25,10 @@ struct DiskOperations
 
     unsigned char* getShmAddr(unsigned int blockIndex);
 
+    Inode* getInodeById(unsigned int id);
+
+    ErrorResponse* newErrorResponse(int errnum);
+
     int initShm();
     int initDiskStructures();
     int initRoot();
@@ -29,5 +36,5 @@ struct DiskOperations
     DiskOperations(unsigned int inodesCount, unsigned int blockSize, unsigned int fsSize);
     virtual ~DiskOperations();
 
-    int mkdir(char* path);
+    Packet* mkdir(char* path, int mode);
 };

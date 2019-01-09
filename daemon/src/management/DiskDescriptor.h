@@ -7,4 +7,5 @@ struct DiskDescriptor
     unsigned int blocksCount;
     unsigned int inodesCount;
     unsigned int maxInodesCount;
+    unsigned int freeInodeId;
 };

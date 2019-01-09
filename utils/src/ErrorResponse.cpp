@@ -23,3 +23,13 @@ void ErrorResponse::serialize(char* data)
 	*(int*)data = errno;
 }
 
+void ErrorResponse::setErrno(int errno)
+{
+	this->errno = errno;
+}
+
+int ErrorResponse::getErrno()
+{
+	return errno;
+}
+

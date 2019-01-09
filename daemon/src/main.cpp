@@ -60,9 +60,18 @@ int main(int argc, const char** argv)
     printUsageMap();
     printInodes();
 
-    diskOps->mkdir("/XD1");
-    diskOps->mkdir("/XD2");
-    diskOps->mkdir("/XD3");
+    diskOps->mkdir("/XD1", 15);
+    diskOps->mkdir("/XD2", 15);
+    diskOps->mkdir("/XD3", 15);
+
+    printUsageMap();
+    printInodes();
+
+    diskOps->mkdir("/XD1", 15);
+    diskOps->mkdir("/XD2", 15);
+    diskOps->mkdir("/XD3", 15);
+
+
 
     printUsageMap();
     printInodes();
