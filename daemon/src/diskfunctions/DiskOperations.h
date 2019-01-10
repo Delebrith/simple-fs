@@ -37,4 +37,12 @@ struct DiskOperations
     virtual ~DiskOperations();
 
     Packet* mkdir(char* path, int mode);
+    Packet* open(char* path, int mode);
+    Packet* unlink(char* path);
+    Packet* create(char* path, int mode);
+    Packet* read(int fd, char* buf, int len);
+    Packet* write(int fd, char* buf, int len);
+    Packet* lseek(int fd, int offset, int whence);
+    Packet* chmod(char* path, int mode);
+    
 };
