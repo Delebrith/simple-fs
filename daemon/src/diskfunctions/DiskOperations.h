@@ -44,5 +44,5 @@ struct DiskOperations
     Packet* write(int fd, char* buf, int len);
     Packet* lseek(int fd, int offset, int whence);
     Packet* chmod(char* path, int mode);
-    
+
 };
