@@ -108,11 +108,72 @@ void* executor(void* connector)
 
 	Packet* request = conn->receive();
 	Packet* response = nullptr;
+
+	int fd = 0; //change to actual fd type pointer
 	
-	//log request
-	//switch request
-	//log response
-	conn->send(*response);
+	simplefs::log::logInfo("Executor", "Recived request %x from process %d", request->getId(), conn->getPid());
+
+	switch(request->getId())
+	{
+	case OperationWithPathRequest::Create:
+		response = diskOps->create(
+			static_cast<OperationWithPathRequest*>(request)->getPath(),
+			static_cast<OperationWithPathRequest*>(request)->getMode());
+		break;
+	case OperationWithPathRequest::Open:
+		response = diskOps->open(
+			static_cast<OperationWithPathRequest*>(request)->getPath(),
+			static_cast<OperationWithPathRequest*>(request)->getMode());
+		break;
+	case OperationWithPathRequest::Chmd:
+		response = diskOps->chmod(
+			static_cast<OperationWithPathRequest*>(request)->getPath(),
+			static_cast<OperationWithPathRequest*>(request)->getMode());
+		break;
+	case OperationWithPathRequest::Unlink:
+		response = diskOps->unlink(
+			static_cast<OperationWithPathRequest*>(request)->getPath());
+		break;
+	case OperationWithPathRequest::Mkdir:
+		response = diskOps->mkdir(
+			static_cast<OperationWithPathRequest*>(request)->getPath(),
+			static_cast<OperationWithPathRequest*>(request)->getMode());
+		break;
+	case LSeekRequest::ID:
+		//get and check fd
+		response = diskOps->lseek(fd,
+			static_cast<LSeekRequest*>(request)->getOffset(),
+			static_cast<LSeekRequest*>(request)->getWhence());
+		break;
+	case ReadRequest::ID:
+		//get and check fd
+		response = diskOps->read(fd,
+			static_cast<ReadRequest*>(request)->getLen());
+		break;
+	case WriteRequest::ID:
+		//get and check fd
+		response = diskOps->write(fd,
+			static_cast<WriteRequest*>(request)->getLen());
+		break;
+	case CloseRequest::ID:
+		//get and check fd
+		response = diskOps->close(fd);
+		break;
+	}
+
+	if (response == nullptr)
+	{
+		simplefs::log::logWarning("Executor", "Did not create response for request %x", request->getId());
+	}
+	else
+	{
+		simplefs::log::logInfo("Executor", "Sending response %x to process %d as reply to request %x",
+				response->getId(),
+				conn->getPid(),
+				request->getId());
+				
+		conn->send(*response);
+	}
 
 	delete response;
 	delete request;

@@ -44,8 +44,8 @@ struct DiskOperations
     Packet* open(char* path, int mode);
     Packet* unlink(char* path);
     Packet* create(char* path, int mode);
-    Packet* read(int fd, char* buf, int len);
-    Packet* write(int fd, char* buf, int len);
+    Packet* read(int fd, int len);
+    Packet* write(int fd, int len);
     Packet* lseek(int fd, int offset, int whence);
     Packet* chmod(char* path, int mode);
 
