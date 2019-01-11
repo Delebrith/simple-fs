@@ -206,9 +206,15 @@ Packet* DiskOperations::mkdir(char *path, int mode) //TODO - add sync (include s
             {
                 Inode* currentInode = getInodeById(dirList[i].inodeId);
                 if (currentInode->fileType == Inode::IT_FILE)
+                {
+                    delete[] folderName;
                     return newErrorResponse(ENOTDIR);
+                }
                 else if (path[endIndex] == '\0')
+                {
+                    delete[] folderName;
                     return newErrorResponse(EEXIST);
+                }
                 else
                 {
                     ++endIndex;
@@ -217,17 +223,29 @@ Packet* DiskOperations::mkdir(char *path, int mode) //TODO - add sync (include s
                     break;
                 }
             }
+            delete[] folderName;
             ++i;
         }
         if (i == parentDir->inodesCount)
         {
             if ((parentInode->permissions & Inode::PERM_W) == 0)
+            {
+                delete[] folderName;
                 return newErrorResponse(EACCES);
+            }
 
+            if (strcmp(folderName, "..") == 0 || strcmp(folderName, ".") == 0)
+            {
+                delete[] folderName;
+                return newErrorResponse(EEXIST);
+            }
             unsigned int inodeBlocks = ceil(sizeof(Inode), blockSize);
             int inodeBlockAddress = um->getFreeBlocks(inodeBlocks);
             if (inodeBlockAddress == -1)
+            {
+                delete[] folderName;
                 return newErrorResponse(ENOSPC);
+            }
             um->markBlocks(inodeBlockAddress, inodeBlockAddress+inodeBlocks, false);
 
             int inodeDataBlocks = ceil(2 * sizeof(InodeDirectoryEntry) + sizeof(Directory), blockSize);
@@ -235,6 +253,7 @@ Packet* DiskOperations::mkdir(char *path, int mode) //TODO - add sync (include s
             if (inodeDataBlockAddress == -1)
             {
                 um->markBlocks(inodeBlockAddress, inodeBlockAddress+inodeBlocks, true);
+                delete[] folderName;
                 return newErrorResponse(ENOSPC);
             }
             um->markBlocks(inodeDataBlockAddress, inodeDataBlockAddress+inodeDataBlocks, false);
@@ -247,7 +266,6 @@ Packet* DiskOperations::mkdir(char *path, int mode) //TODO - add sync (include s
             delete[] folderName;
             return new OKResponse;
         }
-        delete[] folderName;
     }
     return nullptr;
 }
