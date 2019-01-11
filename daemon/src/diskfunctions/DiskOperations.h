@@ -13,6 +13,8 @@ struct DiskOperations
     const unsigned int maxInodesCount; // = 100;
     const unsigned int blockSize; //  = 512;
     const unsigned int fsSize; //  = 512 * 100;
+    const unsigned int volumeId;
+    const char* volumeName;
 
     DiskDescriptor* ds;
     UsageMap* um;
@@ -33,7 +35,9 @@ struct DiskOperations
     int initDiskStructures();
     int initRoot();
 
-    DiskOperations(unsigned int inodesCount, unsigned int blockSize, unsigned int fsSize);
+    void createNewDirEntry(int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode);
+
+    DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize);
     virtual ~DiskOperations();
 
     Packet* mkdir(char* path, int mode);

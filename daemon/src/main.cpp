@@ -3,18 +3,19 @@
 #include <errno.h>
 #include <stdio.h>
 #include <cstring>
+#include <cstdlib>
 #include "management/DiskDescriptor.h"
 #include "management/InodeList.h"
 #include "management/UsageMap.h"
 #include "diskfunctions/DiskOperations.h"
 
-const int INODES_COUNT = 100;
-const int BLOCK_SIZE  = 512;
-const int FS_SIZE  = 512 * 100;
+const char* VOLUME_NAME = "simplefs";
+const unsigned int VOLUME_ID = 0;
+const unsigned int INODES_COUNT = 100;
+const unsigned int BLOCK_SIZE  = 512;
+const unsigned int FS_SIZE  = 512 * 100;
 
 DiskOperations* diskOps;
-
-
 
 void printUsageMap()
 {
@@ -37,32 +38,59 @@ void printInodes()
         printInodeParams(i);
 }
 
-int main(int argc, const char** argv)
+int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size block_size max_inodes_cnt
 {
-    if (INODES_COUNT < 1)
-        return -1;
-    else if (BLOCK_SIZE <= 0 || BLOCK_SIZE % 512 != 0)
-        return -1;
-    else if (FS_SIZE % BLOCK_SIZE != 0)
-        return -1;
+    const char* volumeName = VOLUME_NAME;
+    unsigned int volumeId = VOLUME_ID;
+    unsigned int fsSize = FS_SIZE;
+    unsigned int blockSize = BLOCK_SIZE;
+    unsigned int maxInodesCount = INODES_COUNT;
+
+    if (argc > 1)
+        volumeName = argv[1];
+    if (argc > 2)
+        volumeId = (unsigned int)strtol(argv[2], NULL, 10);
+    if (argc > 3)
+        fsSize = (unsigned int)strtol(argv[3], NULL, 10);
+    if (argc > 4)
+        blockSize = (unsigned int)strtol(argv[4], NULL, 10);
+    if (argc > 5)
+        maxInodesCount = (unsigned int)strtol(argv[5], NULL, 10);
 
 
-    diskOps = new DiskOperations(INODES_COUNT, BLOCK_SIZE, FS_SIZE);
 
-    if (diskOps -> initShm() == -1)
+    if (maxInodesCount < 1)
+        return -1;
+    else if (blockSize <= 0 || blockSize % 512 != 0)
+        return -1;
+    else if (fsSize % blockSize != 0)
+        return -1;
+
+    diskOps = new DiskOperations(volumeName, volumeId, maxInodesCount, blockSize, fsSize);
+
+    if (diskOps->initShm() == -1)
     {
         printf("%d\n", errno);
         return 1;
     }
-    diskOps -> initDiskStructures();
-    diskOps -> initRoot();
+
+    diskOps->initDiskStructures();
+    printUsageMap();
+    diskOps->initRoot();
+    printUsageMap();
 
     printUsageMap();
     printInodes();
 
     diskOps->mkdir("/XD1", 15);
+    printUsageMap();
+    printInodes();
     diskOps->mkdir("/XD2", 15);
+    printUsageMap();
+    printInodes();
     diskOps->mkdir("/XD3", 15);
+    printUsageMap();
+    printInodes();
 
     printUsageMap();
     printInodes();
@@ -77,7 +105,6 @@ int main(int argc, const char** argv)
     printInodes();
 
     delete diskOps;
-
     return 0;
 }
 

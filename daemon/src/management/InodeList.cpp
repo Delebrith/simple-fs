@@ -46,6 +46,6 @@ InodeListEntry* InodeList::getById(unsigned int inodeId)
 
 InodeList::~InodeList()
 {
-    delete[] inodesArray;
+    // delete[] inodesArray;
 }
 
