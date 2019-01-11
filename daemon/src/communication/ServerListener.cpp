@@ -5,8 +5,12 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <pthread.h>
+
 #include "utils/src/config.h"
 #include "daemon/src/logging/log.h"
+#include "ServerSessionConnector.h"
+#include "daemon/src/diskfunctions/DiskOperations.h"
 
 using namespace simplefs;
 
@@ -79,8 +83,39 @@ bool ServerListener::isOk()
 	return ok;
 }
 
+void* executor(void* connector);
+
 void simplefs::runExecutor(int connectionSocket)
 {
-	//TODO
-	close(connectionSocket);
+	ServerSessionConnector* conn = new ServerSessionConnector(connectionSocket);
+	if (!conn->isOk())
+	{
+		simplefs::log::logError("Server", "Failed to receive connection");
+		delete conn;
+		return;
+	}
+	
+	pthread_t thread;	
+	pthread_create(&thread, nullptr, executor, conn);
+	pthread_detach(thread);
+}
+
+extern DiskOperations* diskOps;
+
+void* executor(void* connector)
+{
+	ServerSessionConnector* conn = static_cast<ServerSessionConnector*>(connector);
+
+	Packet* request = conn->receive();
+	Packet* response = nullptr;
+	
+	//log request
+	//switch request
+	//log response
+	conn->send(*response);
+
+	delete response;
+	delete request;
+	delete conn;
+	return nullptr;
 }

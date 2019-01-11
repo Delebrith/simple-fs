@@ -8,6 +8,7 @@
 #include "management/InodeList.h"
 #include "management/UsageMap.h"
 #include "diskfunctions/DiskOperations.h"
+#include "communication/ServerListener.h"
 
 const char* VOLUME_NAME = "simplefs";
 const unsigned int VOLUME_ID = 0;
@@ -36,6 +37,13 @@ void printInodes()
 {
     for (int i = 0; i < diskOps->ds->inodesCount; ++i)
         printInodeParams(i);
+}
+
+void runServer()
+{
+    simplefs::ServerListener listener;
+    while (listener.isOk())
+        listener.waitForConnection();
 }
 
 int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size block_size max_inodes_cnt
@@ -103,6 +111,8 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
 
     printUsageMap();
     printInodes();
+
+    //runServer(); Uncomment to actually run program
 
     delete diskOps;
     return 0;
