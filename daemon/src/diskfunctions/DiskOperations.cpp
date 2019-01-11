@@ -133,7 +133,8 @@ int DiskOperations::initDiskStructures()
     unsigned char* bitmap = shmaddr + blockSize;
     um = new UsageMap(ds->blocksCount, bitmap);
 
-    InodeListEntry* inodeTableAddr = (InodeListEntry*) (shmaddr + blockSize + ceil(ds->blocksCount, blockSize) * blockSize);
+    InodeListEntry* inodeTableAddr = (InodeListEntry*) (shmaddr + ceil(sizeof(DiskDescriptor), blockSize) * blockSize
+            + ceil(ds->blocksCount, blockSize) * blockSize);
 
     inodeList = new InodeList(ds, inodeTableAddr);
 
