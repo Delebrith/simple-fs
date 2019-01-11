@@ -169,7 +169,7 @@ DiskOperations::~DiskOperations()
 {
     shmdt(shmaddr);
 
-    shmctl(shmid, IPC_RMID, nullptr); // TODO -> NULL
+    shmctl(shmid, IPC_RMID, nullptr);
 }
 
 Packet* DiskOperations::mkdir(char *path, int mode) //TODO - add sync (include semaphores, implement them)
