@@ -13,13 +13,14 @@ void Directory::init(unsigned int parentInodeId, unsigned int inodeId)
     this->inodesCount = 2;
     // this->getInodesArray() = new InodeDirectoryEntry[inodesCount];
 
+    InodeDirectoryEntry* inodesArray = getInodesArray();
     // parent directory
-    getInodesArray()[0].inodeId = parentInodeId;
-    strcpy(getInodesArray()[0].inodeName, "..");
+    inodesArray[0].inodeId = parentInodeId;
+    strcpy(inodesArray[0].inodeName, "..");
 
     // newly created directory
-    getInodesArray()[1].inodeId = inodeId;
-    strcpy(getInodesArray()[1].inodeName, ".");
+    inodesArray[1].inodeId = inodeId;
+    strcpy(inodesArray[1].inodeName, ".");
 }
 
 unsigned int Directory::getSize()
@@ -47,8 +48,7 @@ void Directory::addEntry(InodeDirectoryEntry entry)
   //  for (int i = 0; i < inodesCount; i++) {
   //      getInodesArray()[i] = old[i];
  //   }
-    inodesArrayAddr[inodesCount] = entry;
-    inodesCount++;
+    inodesArrayAddr[inodesCount++] = entry;
 
   //  delete[] old;
 }

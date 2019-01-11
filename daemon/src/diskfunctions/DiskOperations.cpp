@@ -21,7 +21,7 @@ unsigned char* DiskOperations::reallocate(Inode* inode, unsigned int newSize)
 {
     unsigned int oldBlocks = ceil(inode->nodeSize, blockSize);
     unsigned int newBlocks = ceil(newSize, blockSize);
-    unsigned char* toRet = NULL;
+    unsigned char* toRet = nullptr;
     if (oldBlocks == newBlocks)
     {
         inode->modificationDate = time(0);
@@ -56,7 +56,7 @@ unsigned char* DiskOperations::reallocate(Inode* inode, unsigned int newSize)
         {
             int freeBlocksStart = um->getFreeBlocks(newBlocks);
             if (freeBlocksStart == -1)
-                return NULL;
+                return nullptr;
 
             toRet = getShmAddr((unsigned int)freeBlocksStart);
             um->markBlocks(freeBlocksStart, freeBlocksStart + newBlocks, false);
@@ -69,9 +69,6 @@ unsigned char* DiskOperations::reallocate(Inode* inode, unsigned int newSize)
         inode->nodeSize = newSize;
 
         return toRet;
-
-
-        //TODO -> update modification time and access date
     }
 }
 
@@ -118,7 +115,7 @@ int DiskOperations::initShm()
     if (shmid == -1)
         return -1;
 
-    shmaddr = (unsigned char*)shmat(shmid, (void*)0,0);
+    shmaddr = (unsigned char*)shmat(shmid, nullptr, 0);
 
     return 0;
 }
@@ -136,7 +133,7 @@ int DiskOperations::initDiskStructures()
     unsigned char* bitmap = shmaddr + blockSize;
     um = new UsageMap(ds->blocksCount, bitmap);
 
-    InodeListEntry* inodeTableAddr = (InodeListEntry*) shmaddr + blockSize + ceil(ds->blocksCount, blockSize) * blockSize;
+    InodeListEntry* inodeTableAddr = (InodeListEntry*) (shmaddr + blockSize + ceil(ds->blocksCount, blockSize) * blockSize);
 
     inodeList = new InodeList(ds, inodeTableAddr);
 
@@ -172,7 +169,7 @@ DiskOperations::~DiskOperations()
 {
     shmdt(shmaddr);
 
-    shmctl(shmid, IPC_RMID, NULL);
+    shmctl(shmid, IPC_RMID, nullptr); // TODO -> NULL
 }
 
 Packet* DiskOperations::mkdir(char *path, int mode) //TODO - add sync (include semaphores, implement them)
@@ -266,7 +263,7 @@ void DiskOperations::createNewDirEntry(int parentInodeId, int inodeBlockAddress,
     inode->modificationDate = time(0);
     inode->accessDate = time(0);
     inode->creationDate = time(0);
-    inode->deletionDate = NULL;
+    inode->deletionDate = 0;
     inode->blockAddress = inodeDataBlockAddress;
 
     directory->init(parentInodeId, inode->id);
