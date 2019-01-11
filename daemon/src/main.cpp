@@ -30,7 +30,9 @@ void printUsageMap()
 void printInodeParams(int i)
 {
     InodeListEntry id = diskOps->inodeList->inodesArray[i];
-    printf("%d %d\n", id.inodeId, id.inodeAddress);
+    printf("%d %d ", id.inodeId, id.inodeAddress);
+    Inode* in = diskOps->getInodeById(id.inodeId);
+    printf("%d %d\n", in->blockAddress, in->permissions);
 }
 
 void printInodes()
@@ -57,13 +59,13 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     if (argc > 1)
         volumeName = argv[1];
     if (argc > 2)
-        volumeId = (unsigned int)strtol(argv[2], NULL, 10);
+        volumeId = (unsigned int)strtol(argv[2], nullptr, 10);
     if (argc > 3)
-        fsSize = (unsigned int)strtol(argv[3], NULL, 10);
+        fsSize = (unsigned int)strtol(argv[3], nullptr, 10);
     if (argc > 4)
-        blockSize = (unsigned int)strtol(argv[4], NULL, 10);
+        blockSize = (unsigned int)strtol(argv[4], nullptr, 10);
     if (argc > 5)
-        maxInodesCount = (unsigned int)strtol(argv[5], NULL, 10);
+        maxInodesCount = (unsigned int)strtol(argv[5], nullptr, 10);
 
 
 
@@ -83,31 +85,23 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     }
 
     diskOps->initDiskStructures();
-    printUsageMap();
     diskOps->initRoot();
     printUsageMap();
-
-    printUsageMap();
     printInodes();
 
-    diskOps->mkdir("/XD1", 15);
-    printUsageMap();
-    printInodes();
-    diskOps->mkdir("/XD2", 15);
-    printUsageMap();
-    printInodes();
-    diskOps->mkdir("/XD3", 15);
-    printUsageMap();
-    printInodes();
-
-    printUsageMap();
-    printInodes();
-
-    diskOps->mkdir("/XD1", 15);
-    diskOps->mkdir("/XD2", 15);
-    diskOps->mkdir("/XD3", 15);
-
-
+    diskOps->mkdir("/XD1", 6);
+    diskOps->mkdir("/XD2", 6);
+    diskOps->mkdir("/XD3", 6);
+    diskOps->mkdir("/XD1/XD1", 6);
+    diskOps->mkdir("/XD2/XD2", 6);
+    diskOps->mkdir("/XD3/XD3", 6);
+    diskOps->mkdir("/XD1/XD2", 6);
+    diskOps->mkdir("/XD1/XD3", 6);
+    diskOps->mkdir("/XD1/XD4", 6);
+    diskOps->mkdir("/XD1/XD5", 6);
+    diskOps->mkdir("/XD1/XD6", 6);
+    diskOps->mkdir("/XD1/XD10", 6);
+    diskOps->mkdir("/XDD", 6);
 
     printUsageMap();
     printInodes();

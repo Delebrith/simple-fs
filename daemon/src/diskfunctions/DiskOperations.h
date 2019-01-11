@@ -23,7 +23,7 @@ struct DiskOperations
     int shmid;
     key_t key;
 
-    int reallocate(Inode* inode, unsigned int newsize);
+    unsigned char* reallocate(Inode* inode, unsigned int newsize);
 
     unsigned char* getShmAddr(unsigned int blockIndex);
 
@@ -49,4 +49,8 @@ struct DiskOperations
     Packet* lseek(int fd, int offset, int whence);
     Packet* chmod(char* path, int mode);
 
+
+    void printUsageMap();
+    void printInodeParams(int i);
+    void printInodes();
 };
