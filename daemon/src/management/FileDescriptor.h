@@ -1,0 +1,8 @@
+//
+// Created by nkp123 on 12.01.19.
+//
+
+#ifndef PROJECT_FILEDESCRIPTOR_H
+#define PROJECT_FILEDESCRIPTOR_H
+
+#endif //PROJECT_FILEDESCRIPTOR_H
