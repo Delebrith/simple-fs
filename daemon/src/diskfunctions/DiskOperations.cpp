@@ -224,7 +224,7 @@ Packet* DiskOperations::mkdir(char *path, int mode) //TODO - add sync (include s
                     break;
                 }
             }
-            delete[] folderName;
+
             ++i;
         }
         if (i == parentDir->inodesCount)
@@ -267,6 +267,7 @@ Packet* DiskOperations::mkdir(char *path, int mode) //TODO - add sync (include s
             delete[] folderName;
             return new OKResponse;
         }
+        delete[] folderName;
     }
     return nullptr;
 }
