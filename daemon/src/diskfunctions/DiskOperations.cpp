@@ -315,6 +315,32 @@ Packet* DiskOperations::mkdir(const char *path, int mode) //TODO - add sync (inc
     return nullptr;
 }
 
+Packet *DiskOperations::lseek(FileDescriptor *fd, int offset, int whence)
+{
+    if (fd->inode->fileType == Inode::IT_DIRECTORY)
+        return newErrorResponse(ENOSYS);
+    if (whence == SEEK_SET)
+    {
+        if (offset < 0 || offset >= fd->inode->nodeSize)
+            return newErrorResponse(EINVAL);
+        fd->position = (unsigned long long)offset;
+    }
+    else if (whence == SEEK_CUR || whence == SEEK_END)
+    {
+        unsigned long long newPosition;
+        if (whence == SEEK_CUR)
+            newPosition = fd->position + offset;
+        else
+            newPosition = fd->inode->nodeSize + offset;
+        if (newPosition < 0 || newPosition >= fd->inode->nodeSize)
+            return newErrorResponse(EINVAL);
+        fd->position = newPosition;
+    }
+    else
+        return newErrorResponse(EINVAL);
+    return new OKResponse;
+}
+
 void DiskOperations::printUsageMap()
 {
     for (int x = 0; x < um->size; ++x)
