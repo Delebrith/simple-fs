@@ -6,6 +6,7 @@
 #include "daemon/src/management/Inode.h"
 #include "daemon/src/management/FileDescriptor.h"
 #include "utils/src/IPCPackets.h"
+#include <semaphore.h>
 
 namespace simplefs
 {
@@ -37,7 +38,7 @@ namespace simplefs
         int initDiskStructures();
         int initRoot();
 
-        void createNewDirEntry(int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode);
+        void createNewDirEntry(unsigned int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode);
 
         DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize);
         virtual ~DiskOperations();
@@ -55,5 +56,7 @@ namespace simplefs
         void printUsageMap();
         void printInodeParams(int i);
         void printInodes();
-};
+    private:
+        sem_t inodeOpSemaphore;
+    };
 }

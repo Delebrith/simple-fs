@@ -15,6 +15,7 @@ UsageMap::UsageMap(int size, unsigned char *addr)
     this->blocks = addr;
     for (int x = 0; x < size; ++x)
         *(this->blocks + x) = 0;
+    sem_init(&usageMapSemaphore, 0, 1);
 
 }
 
@@ -25,23 +26,28 @@ void UsageMap::markBlocks(int from, int to, bool free)
     if (from < 0 || to >= size || from > to) {
         throw DiskException("Invalid bounds");
     }
-
+    sem_wait(&usageMapSemaphore);
     if (!free) {
         for (int i = from; i < to; i++) {
             if (blocks[i] == IN_USE)
+            {
+                sem_post(&usageMapSemaphore);
                 throw DiskException("Memory already in use");
+            }
         }
     }
 
     for (int i = from; i < to; i++) {
         blocks[i] = value;
     }
+    sem_post(&usageMapSemaphore);
 }
 
 int UsageMap::getFreeBlocks(unsigned int requiredBlocks)
 {
     unsigned int freeBlocks = 0;
     unsigned int firstBlock = 0;
+    sem_wait(&usageMapSemaphore);
     for (int i = 0; i < size; ++i)
     {
         if (blocks[i] == FREE)
@@ -53,12 +59,17 @@ int UsageMap::getFreeBlocks(unsigned int requiredBlocks)
         else
             freeBlocks = 0;
         if (freeBlocks == requiredBlocks)
+        {
+            sem_post(&usageMapSemaphore);
             return firstBlock;
+        }
     }
+    sem_post(&usageMapSemaphore);
     return -1;
 }
 
 UsageMap::~UsageMap()
 {
     // delete[] blocks;
+    sem_destroy(&usageMapSemaphore);
 }

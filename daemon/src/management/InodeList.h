@@ -2,6 +2,7 @@
 
 #include "InodeEntry.h"
 #include "DiskDescriptor.h"
+#include <semaphore.h>
 
 struct InodeList
 {
@@ -13,4 +14,7 @@ struct InodeList
     void deleteInodeEntry(unsigned int inodeId);
     InodeListEntry* getById(unsigned int inodeId);
     ~InodeList();
+
+private:
+    sem_t inodeListSemaphore;
 };

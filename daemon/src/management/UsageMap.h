@@ -1,5 +1,7 @@
 #pragma once
 
+#include <semaphore.h>
+
 struct UsageMap
 {
     const static unsigned char FREE = '\000';
@@ -17,4 +19,7 @@ struct UsageMap
     int getFreeBlocks(unsigned int requiredBlocks);
 
     ~UsageMap();
+
+private:
+    sem_t usageMapSemaphore;
 };
