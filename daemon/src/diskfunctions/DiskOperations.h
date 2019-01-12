@@ -44,8 +44,6 @@ namespace simplefs
         virtual ~DiskOperations();
 
         int fillInodeWithDirectoryData();
-        Packet* dirNavigate(const char* path, Inode** resultingInode);
-
         Packet* createInode(const char* path, int mode, int inodeFileType);
         Packet* mkdir(const char* path, int mode);
         Packet* open(const char* path, int mode);

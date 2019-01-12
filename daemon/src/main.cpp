@@ -8,7 +8,6 @@
 #include "management/DiskDescriptor.h"
 #include "management/InodeList.h"
 #include "management/UsageMap.h"
-#include "management/Directory.h"
 #include "diskfunctions/DiskOperations.h"
 #include "communication/ServerListener.h"
 #include "management/FileDescriptor.h"
@@ -43,19 +42,6 @@ void printInodes()
 {
     for (int i = 0; i < diskOps->ds->inodesCount; ++i)
         printInodeParams(i);
-}
-
-void ls(Inode* inodeDirectory, simplefs::DiskOperations* diskOps)
-{
-    Directory* dir = (Directory*)diskOps->getShmAddr(inodeDirectory->blockAddress);
-    InodeDirectoryEntry* directoryEntries = dir->getInodesArray();
-    printf("LS, items: %d\n", dir->inodesCount);
-    for(uint64_t x = 0; x < dir->inodesCount; x++)
-    {
-        printf("%s\t%d\n", directoryEntries->inodeName, directoryEntries->inodeId);
-        directoryEntries++;
-    }
-
 }
 
 void runServer()
@@ -129,13 +115,6 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     diskOps->create("/6", 6);
     diskOps->create("/7", 6);
     diskOps->create("/8", 6);
-
-    Inode* resinode = 0;
-    printf("resinode: %ld\n", (uint64_t)resinode);
-    diskOps->dirNavigate("/XD1", &resinode);
-    printf("resinode: %ld\n", (uint64_t)resinode);
-    //resinode = diskOps->getInodeById(0);
-    ls(resinode,diskOps);
 
 
     printUsageMap();
