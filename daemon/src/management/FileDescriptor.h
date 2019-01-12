@@ -45,6 +45,8 @@ struct FileDescriptor
     int mode;
     int number;
 
+    unsigned long long position = 0;
+
     FileDescriptor(Inode* inode, int mode, int number);
 };
 
