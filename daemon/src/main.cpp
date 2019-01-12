@@ -4,10 +4,12 @@
 #include <stdio.h>
 #include <cstring>
 #include <cstdlib>
+#include <daemon/src/management/FileDescriptor.h>
 #include "management/DiskDescriptor.h"
 #include "management/InodeList.h"
 #include "management/UsageMap.h"
 #include "diskfunctions/DiskOperations.h"
+#include "management/FileDescriptor.h"
 
 const char* VOLUME_NAME = "simplefs";
 const unsigned int VOLUME_ID = 0;
@@ -16,6 +18,7 @@ const unsigned int BLOCK_SIZE  = 512;
 const unsigned int FS_SIZE  = 512 * 100;
 
 DiskOperations* diskOps;
+FileDescriptorTable* fdTable;
 
 void printUsageMap()
 {
@@ -69,6 +72,7 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
         return -1;
 
     diskOps = new DiskOperations(volumeName, volumeId, maxInodesCount, blockSize, fsSize);
+    fdTable = new FileDescriptorTable();
 
     if (diskOps->initShm() == -1)
     {
@@ -97,6 +101,48 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
 
     printUsageMap();
     printInodes();
+
+    //delete diskOps;
+
+
+
+
+    // FILE DESCRIPTOR "TESTS"
+    fdTable->CreateDescriptor(1, diskOps->getInodeById(0), 1);
+    fdTable->CreateDescriptor(1, diskOps->getInodeById(1), 1);
+    FileDescriptor* miau = fdTable->CreateDescriptor(2, diskOps->getInodeById(1), 1);
+    fdTable->CreateDescriptor(3, diskOps->getInodeById(2), 1);
+
+    printf("\n\nFileDescriptorTable one of the inodes from fd list:\n%d\n", fdTable->getDescriptor(3, 0)->inode->id);
+
+    fdTable->destroyDescriptor(miau);
+    fdTable->destroyDescriptor(3, 0);
+
+    printf("if nullptr then destroyed:\n%d\n", (uint64_t)(fdTable->getDescriptor(3, 0)));
+
+
+
+    // INODESTATUSMAP "TESTS"
+    fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
+    fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
+    fdTable->inodeStatusMap.OpenForWriting(diskOps->getInodeById(1));
+    printf("\n\nInodeStatusMap:\n%d\n%d\n",
+            fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
+            fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
+    );
+
+    fdTable->inodeStatusMap.Close(diskOps->getInodeById(0));
+    fdTable->inodeStatusMap.Close(diskOps->getInodeById(1));
+    printf("\n%d\n%d\n",
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
+    );
+
+    fdTable->inodeStatusMap.Close(diskOps->getInodeById(0));
+    printf("\n%d\n%d\n",
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
+    );
 
     delete diskOps;
     return 0;
