@@ -3,6 +3,8 @@
 // Created by nkp123 on 12.01.19.
 //
 
+
+
 int InodeStatusMap::InodeStatus(Inode* inode)
 {
     int ret;
