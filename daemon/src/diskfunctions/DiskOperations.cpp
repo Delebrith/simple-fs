@@ -185,6 +185,7 @@ Inode* DiskOperations::createNewInodeEntry(unsigned int parentInodeId, int inode
     inode->creationDate = time(0);
     inode->deletionDate = 0;
     inode->blockAddress = (unsigned int)inodeDataBlockAddress;
+
     inode->nodeSize = 0;
 
     if(inodeFileType == Inode::IT_DIRECTORY)
@@ -193,7 +194,6 @@ Inode* DiskOperations::createNewInodeEntry(unsigned int parentInodeId, int inode
         directory->init(parentInodeId, inode->id);
         inode->nodeSize = directory->getSize();
     }
-
 
     InodeListEntry entry{};
     entry.inodeAddress = (unsigned int)inodeBlockAddress;
@@ -488,6 +488,32 @@ Packet* DiskOperations::mkdir(const char* path, int permissions)
     }
     return new OKResponse();
 }
+
+Packet *DiskOperations::lseek(FileDescriptor *fd, int offset, int whence)
+{
+    if (fd->inode->fileType == Inode::IT_DIRECTORY)
+        return newErrorResponse(ENOSYS);
+    if (whence == SEEK_SET)
+    {
+        if (offset < 0 || offset >= fd->inode->nodeSize)
+            return newErrorResponse(EINVAL);
+        fd->position = (unsigned long long)offset;
+    }
+    else if (whence == SEEK_CUR || whence == SEEK_END)
+    {
+        unsigned long long newPosition;
+        if (whence == SEEK_CUR)
+            newPosition = fd->position + offset;
+        else
+            newPosition = fd->inode->nodeSize + offset;
+        if (newPosition < 0 || newPosition >= fd->inode->nodeSize)
+            return newErrorResponse(EINVAL);
+        fd->position = newPosition;
+    }
+    else
+        return newErrorResponse(EINVAL);
+    return new OKResponse;
+}
 Packet* DiskOperations::create(const char* path, int mode, int pid)
 {
     return open(path, (mode & FileDescriptor::M_WRITE) | FileDescriptor::M_CREATE | FileDescriptor::M_CREATE_PERM_W, pid);
@@ -558,10 +584,6 @@ Packet* DiskOperations::read(FileDescriptor* fd)
     return nullptr;
 }
 Packet* DiskOperations::write(FileDescriptor* fd, int len)
-{
-    return nullptr;
-}
-Packet* DiskOperations::lseek(FileDescriptor* fd, int offset, int whence)
 {
     return nullptr;
 }
