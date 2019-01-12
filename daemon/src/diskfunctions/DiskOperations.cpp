@@ -233,9 +233,68 @@ void DiskOperations::printInodes()
     for (int i = 0; i < ds->inodesCount; ++i)
         printInodeParams(i);
 }
-/*Packet* DiskOperations::dirNavigate(const char *path, Inode* &resultingInode) //TODO - add sync (include semaphores, implement them)
+Packet* DiskOperations::dirNavigate(const char* path, Inode** resultingInode) // just for testing
 {
-}*/
+    size_t pathLength = strlen(path);
+    if (pathLength < 1)
+        return newErrorResponse(ENOENT);
+    else if (pathLength == 1)
+    {
+        if (path[0] != '/')
+            return newErrorResponse(ENOTDIR);
+        else
+            return newErrorResponse(EEXIST);
+    }
+    else if (path[0] != '/')
+        return newErrorResponse(ENOTDIR);
+    int startIndex = 1;
+    int endIndex = 1;
+    unsigned int parentInodeId = 0;
+    sem_wait(&inodeOpSemaphore);
+    while (endIndex < pathLength)
+    {
+        while (path[endIndex] != '/' && path[endIndex] != '\0')
+            ++endIndex;
+        char* folderName = new char[endIndex - startIndex + 1];
+        folderName[endIndex - startIndex] = '\0';
+        strncpy(folderName, path + startIndex, (size_t)endIndex - startIndex);
+        Inode* parentInode = getInodeById(parentInodeId);
+
+        if ((parentInode->permissions & Inode::PERM_R) == 0)
+        {
+            sem_post(&inodeOpSemaphore);
+            delete[] folderName;
+            return newErrorResponse(EACCES);
+        }
+
+        Directory* parentDir = (Directory*)getShmAddr(parentInode->blockAddress);
+        InodeDirectoryEntry* dirList = parentDir->getInodesArray();
+        int i = 0;
+        while (i < parentDir->inodesCount)
+        {
+            if (strcmp(dirList[i].inodeName, folderName) == 0)
+            {
+                Inode* currentInode = getInodeById(dirList[i].inodeId);
+
+                ++endIndex;
+                startIndex = endIndex;
+                parentInodeId = currentInode->id;
+                break;
+            }
+
+            ++i;
+        }
+
+        *resultingInode = parentInode;
+
+        sem_post(&inodeOpSemaphore);
+        delete[] folderName;
+        return new OKResponse;
+
+    }
+    sem_post(&inodeOpSemaphore);
+    return nullptr;
+}
 
 
 Packet* DiskOperations::createInode(const char *path, int mode, int inodeFileType) //TODO - add sync (include semaphores, implement them)
