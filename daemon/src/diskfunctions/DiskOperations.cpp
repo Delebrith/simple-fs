@@ -9,6 +9,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+
+using namespace simplefs;
+
 unsigned int ceil(unsigned int up, unsigned int down)
 {
     unsigned int result = up / down;
@@ -173,7 +176,7 @@ DiskOperations::~DiskOperations()
     shmctl(shmid, IPC_RMID, nullptr);
 }
 
-Packet* DiskOperations::mkdir(char *path, int mode) //TODO - add sync (include semaphores, implement them)
+Packet* DiskOperations::mkdir(const char *path, int mode) //TODO - add sync (include semaphores, implement them)
 {
     size_t pathLength = strlen(path);
     if (pathLength < 1)

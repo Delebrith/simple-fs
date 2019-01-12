@@ -9,6 +9,7 @@
 #include "management/InodeList.h"
 #include "management/UsageMap.h"
 #include "diskfunctions/DiskOperations.h"
+#include "communication/ServerListener.h"
 #include "management/FileDescriptor.h"
 
 const char* VOLUME_NAME = "simplefs";
@@ -17,7 +18,7 @@ const unsigned int INODES_COUNT = 100;
 const unsigned int BLOCK_SIZE  = 512;
 const unsigned int FS_SIZE  = 512 * 100;
 
-DiskOperations* diskOps;
+simplefs::DiskOperations* diskOps;
 FileDescriptorTable* fdTable;
 
 void printUsageMap()
@@ -41,6 +42,13 @@ void printInodes()
 {
     for (int i = 0; i < diskOps->ds->inodesCount; ++i)
         printInodeParams(i);
+}
+
+void runServer()
+{
+    simplefs::ServerListener listener;
+    while (listener.isOk())
+        listener.waitForConnection();
 }
 
 int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size block_size max_inodes_cnt
@@ -71,7 +79,7 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     else if (fsSize % blockSize != 0)
         return -1;
 
-    diskOps = new DiskOperations(volumeName, volumeId, maxInodesCount, blockSize, fsSize);
+    diskOps = new simplefs::DiskOperations(volumeName, volumeId, maxInodesCount, blockSize, fsSize);
     fdTable = new FileDescriptorTable();
 
     if (diskOps->initShm() == -1)
@@ -102,9 +110,7 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     printUsageMap();
     printInodes();
 
-    //delete diskOps;
-
-
+    //runServer(); Uncomment to actually run program
 
 
     // FILE DESCRIPTOR "TESTS"

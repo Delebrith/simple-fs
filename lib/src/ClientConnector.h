@@ -5,7 +5,7 @@
 
 namespace simplefs
 {
-	class ClientConnector : Connector
+	class ClientConnector : public Connector
 	{
 	public:
 		ClientConnector();

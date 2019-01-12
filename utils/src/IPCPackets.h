@@ -24,6 +24,13 @@ namespace simplefs
 		virtual char* getRemainderBuffer() { return nullptr; } //for packets with varying size
 
 		virtual void serialize(char* data) = 0;
+
+		int getId();
+	protected:
+		Packet(int id) : id(id) {}
+		
+	private:
+		int id;
 	};
 
 	class OperationWithPathRequest : public Packet
@@ -37,7 +44,7 @@ namespace simplefs
 			Mkdir = 'MKDR'
 		} OpType;
 
-		OperationWithPathRequest(OpType type) : type(type) {}
+		OperationWithPathRequest(OpType type) : Packet(type), type(type) {}
 		~OperationWithPathRequest();
 
 		virtual int getBaseLength();
@@ -70,6 +77,7 @@ namespace simplefs
 	{
 	public:
 		static const unsigned int ID = 'SEEK';
+		LSeekRequest() : Packet(ID) {}
 		
 		virtual int getBaseLength();
 
@@ -96,6 +104,7 @@ namespace simplefs
 	{
 	public:
 		static const unsigned int ID = 'READ';
+		ReadRequest() : Packet(ID) {}
 		
 		virtual int getBaseLength();
 
@@ -114,6 +123,7 @@ namespace simplefs
 	{
 	public:
 		static const unsigned int ID = 'WRTE';
+		WriteRequest() : Packet(ID) {}
 		
 		virtual int getBaseLength();
 
@@ -136,6 +146,7 @@ namespace simplefs
 	{
 	public:
 		static const unsigned int ID = 'CLSE';
+		CloseRequest() : Packet(ID) {}
 		
 		virtual int getBaseLength();
 
@@ -154,6 +165,7 @@ namespace simplefs
 	{
 	public:
 		static const unsigned int ID = 'OKOK';
+		OKResponse() : Packet(ID) {}
 		
 		virtual int getBaseLength();
 
@@ -167,6 +179,7 @@ namespace simplefs
 	{
 	public:
 		static const unsigned int ID = 'FAIL';
+		ErrorResponse() : Packet(ID) {}
 		
 		virtual int getBaseLength();
 
@@ -181,10 +194,30 @@ namespace simplefs
 		int errno;
 	};
 
+	class FDResponse : public Packet
+	{
+	public:
+		static const unsigned int ID = 'FDES';
+		FDResponse() : Packet(ID) {}
+		
+		virtual int getBaseLength();
+
+		virtual void deserializeBase(const char* data);
+
+		virtual void serialize(char* data);
+
+		int getFD();
+		void setFD(int);
+	
+	private:
+		int fd;
+	};
+
 	class ShmemPtrResponse : public Packet
 	{
 	public:
 		static const unsigned int ID = 'SHMP';
+		ShmemPtrResponse() : Packet(ID) {}
 		
 		virtual int getBaseLength();
 
