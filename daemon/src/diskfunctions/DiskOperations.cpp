@@ -314,7 +314,8 @@ Inode* DiskOperations::dirNavigate(const char* path) // just for testing
         }
         sem_post(&inodeOpSemaphore);
         delete[] folderName;
-        return parentInode;
+        Inode* inode = getInodeById(parentInodeId);
+        return inode;
 
     }
     sem_post(&inodeOpSemaphore);

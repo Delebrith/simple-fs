@@ -36,6 +36,7 @@ int InodeStatusMap::OpenForReadWrite(Inode* inode)
 
     return ret;
 }
+
 int InodeStatusMap::OpenForWriting(Inode* inode)
 {
     int ret;

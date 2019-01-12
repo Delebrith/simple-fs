@@ -57,6 +57,20 @@ void ls(Inode* inodeDirectory, simplefs::DiskOperations* diskOps)
     }
 
 }
+void ls(char* dirName, simplefs::DiskOperations* diskOps)
+{
+    Inode* inodeDirectory = diskOps->dirNavigate(dirName);
+
+    Directory* dir = (Directory*)diskOps->getShmAddr(inodeDirectory->blockAddress);
+    InodeDirectoryEntry* directoryEntries = dir->getInodesArray();
+    printf("LS dirname: %s, items: %d\n", dirName, dir->inodesCount);
+    for(uint64_t x = 0; x < dir->inodesCount; x++)
+    {
+        printf("%s\t%d\n", directoryEntries->inodeName, directoryEntries->inodeId);
+        directoryEntries++;
+    }
+
+}
 
 void runServer()
 {
@@ -125,7 +139,7 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     diskOps->create("/2", 6, 1);
     diskOps->create("/2", 6, 1);
     diskOps->create("/3", 6, 1);
-    diskOps->create("/4", 6, 1);
+    diskOps->open("/4", FileDescriptor::M_CREATE, 1);
     diskOps->create("/5", 6, 1);
     diskOps->create("/6", 6, 1);
     diskOps->create("/7", 6, 1);
@@ -139,7 +153,8 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     resinode = diskOps->dirNavigate("/XD1");
     printf("dir navigation testafter (should be nonzero): %ld\n\n", (uint64_t)resinode);
     //resinode = diskOps->getInodeById(0);
-    ls(resinode,diskOps);
+    ls("/XD1",diskOps);
+    ls("/",diskOps);
 
 
     printUsageMap();
@@ -149,21 +164,21 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
 
 
     // FILE DESCRIPTOR "TESTS"
-    fdTable->CreateDescriptor(1, diskOps->getInodeById(0), 1);
-    fdTable->CreateDescriptor(1, diskOps->getInodeById(1), 1);
-    FileDescriptor* miau = fdTable->CreateDescriptor(2, diskOps->getInodeById(1), 1);
+    fdTable->CreateDescriptor(10, diskOps->getInodeById(0), 1);
+    fdTable->CreateDescriptor(10, diskOps->getInodeById(1), 1);
+    FileDescriptor* miau = fdTable->CreateDescriptor(11, diskOps->getInodeById(1), 1);
     printf("\n\nTEST: %ld\n", (uint64_t)diskOps->getInodeById(2));
-    fdTable->CreateDescriptor(3, diskOps->getInodeById(2), 1);
+    fdTable->CreateDescriptor(12, diskOps->getInodeById(2), 1);
 
-    printf("\n\nFileDescriptorTable one of the inodes from fd list:\n%d\n", fdTable->getDescriptor(3, 0)->inode->id);
+    printf("\n\nFileDescriptorTable one of the inodes from fd list:\n%d\n", fdTable->getDescriptor(12, 0)->inode->id);
 
     fdTable->destroyDescriptor(miau);
-    fdTable->destroyDescriptor(3, 0);
+    fdTable->destroyDescriptor(12, 0);
 
-    printf("if nullptr then destroyed:\n%d\n", (uint64_t)(fdTable->getDescriptor(3, 0)));
+    printf("if nullptr then destroyed:\n%d\n", (uint64_t)(fdTable->getDescriptor(12, 0)));
 
 
-
+    printf("\nRoot dir inode id: %d\n", (diskOps->getInodeById(0)->id));
     // INODESTATUSMAP "TESTS"
     fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
     fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
