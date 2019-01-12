@@ -55,6 +55,9 @@ namespace simplefs
 
 		virtual void serialize(char* data);
 
+		int getPid();
+		void setPid(int);
+
 		int getMode();
 		void setMode(int);
 		
@@ -67,6 +70,7 @@ namespace simplefs
 		OperationWithPathRequest(OperationWithPathRequest&&);
 		OperationWithPathRequest& operator=(OperationWithPathRequest);
 
+		int pid;
 		int mode;
 		char* path = nullptr;
 		int pathLen = 0;

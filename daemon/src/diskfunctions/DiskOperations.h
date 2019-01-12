@@ -22,6 +22,7 @@ namespace simplefs
         DiskDescriptor* ds;
         UsageMap* um;
         InodeList* inodeList;
+        FileDescriptorTable* fdTable;
         unsigned char* shmaddr;
         int shmid;
         key_t key;
@@ -38,19 +39,19 @@ namespace simplefs
         int initDiskStructures();
         int initRoot();
 
-        void createNewInodeEntry(unsigned int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode, int inodeFileType);
+        Inode* createNewInodeEntry(unsigned int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode, int inodeFileType);
 
-        DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize);
+        DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize, FileDescriptorTable* fdTable);
         virtual ~DiskOperations();
 
         int fillInodeWithDirectoryData();
-        Packet* dirNavigate(const char* path, Inode** resultingInode);
+        Inode* dirNavigate(const char* path);
+        Inode* createInode(const char* path, int mode, int inodeFileType);
 
-        Packet* createInode(const char* path, int mode, int inodeFileType);
-        Packet* mkdir(const char* path, int mode);
-        Packet* open(const char* path, int mode);
+        Packet* mkdir(const char* path, int permissions);
+        Packet* open(const char* path, int mode, int pid);
         Packet* unlink(const char* path);
-        Packet* create(const char* path, int mode);
+        Packet* create(const char* path, int mode, int pid);
         Packet* read(FileDescriptor* fd);
         Packet* write(FileDescriptor* fd, int len);
         Packet* lseek(FileDescriptor* fd, int offset, int whence);

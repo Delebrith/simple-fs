@@ -93,8 +93,9 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     else if (fsSize % blockSize != 0)
         return -1;
 
-    diskOps = new simplefs::DiskOperations(volumeName, volumeId, maxInodesCount, blockSize, fsSize);
     fdTable = new FileDescriptorTable();
+    diskOps = new simplefs::DiskOperations(volumeName, volumeId, maxInodesCount, blockSize, fsSize, fdTable);
+
 
     if (diskOps->initShm() == -1)
     {
@@ -120,20 +121,23 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     diskOps->mkdir("/XD1/XD6", 6);
     diskOps->mkdir("/XD1/XD10", 6);
     diskOps->mkdir("/XDD", 6);
-    diskOps->create("/1", 6);
-    diskOps->create("/2", 6);
-    diskOps->create("/2", 6);
-    diskOps->create("/3", 6);
-    diskOps->create("/4", 6);
-    diskOps->create("/5", 6);
-    diskOps->create("/6", 6);
-    diskOps->create("/7", 6);
-    diskOps->create("/8", 6);
+    diskOps->create("/1", 6, 1);
+    diskOps->create("/2", 6, 1);
+    diskOps->create("/2", 6, 1);
+    diskOps->create("/3", 6, 1);
+    diskOps->create("/4", 6, 1);
+    diskOps->create("/5", 6, 1);
+    diskOps->create("/6", 6, 1);
+    diskOps->create("/7", 6, 1);
+    diskOps->create("/8", 6, 1);
+
+    fdTable->getDescriptor(1,4);
+    printf("\nopened node number at fd=4 and pid=1 (should be 4): %d\n", fdTable->getDescriptor(1,4)->number);
 
     Inode* resinode = 0;
-    printf("resinode: %ld\n", (uint64_t)resinode);
-    diskOps->dirNavigate("/XD1", &resinode);
-    printf("resinode: %ld\n", (uint64_t)resinode);
+    printf("\ndir navigation test before: %ld\n", (uint64_t)resinode);
+    resinode = diskOps->dirNavigate("/XD1");
+    printf("dir navigation testafter (should be nonzero): %ld\n\n", (uint64_t)resinode);
     //resinode = diskOps->getInodeById(0);
     ls(resinode,diskOps);
 

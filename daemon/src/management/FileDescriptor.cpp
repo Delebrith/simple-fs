@@ -17,6 +17,25 @@ int InodeStatusMap::InodeStatus(Inode* inode)
 
     return ret;
 }
+int InodeStatusMap::OpenForReadWrite(Inode* inode)
+{
+    int ret;
+
+    sem_wait(&statusMapSemaphore);
+        if (statusMap.find(inode) != statusMap.end())
+        {
+            errno = EBADF; //ENOSYS;
+            ret = -1;
+        }
+        else
+        {
+            statusMap[inode] = -2;
+            ret = 0;
+        }
+    sem_post(&statusMapSemaphore);
+
+    return ret;
+}
 int InodeStatusMap::OpenForWriting(Inode* inode)
 {
     int ret;
@@ -24,7 +43,7 @@ int InodeStatusMap::OpenForWriting(Inode* inode)
     sem_wait(&statusMapSemaphore);
         if (statusMap.find(inode) != statusMap.end())
         {
-            errno = EACCES; //ENOSYS;
+            errno = EBADF; //ENOSYS;
             ret = -1;
         }
         else
@@ -41,9 +60,9 @@ int InodeStatusMap::OpenForReading(Inode* inode)
     int ret;
 
     sem_wait(&statusMapSemaphore);
-        if (statusMap.find(inode) != statusMap.end() && statusMap[inode] == -1)
+        if (statusMap.find(inode) != statusMap.end() && statusMap[inode] < 0)
         {
-            errno = EACCES;
+            errno = EBADF;
             ret = -1;
         }
         else
@@ -71,7 +90,7 @@ int InodeStatusMap::Close(Inode* inode)
         }
         else
         {
-            if(statusMap[inode] == -1)
+            if(statusMap[inode] < 0)
             {
                 statusMap[inode] = 0;
             }
