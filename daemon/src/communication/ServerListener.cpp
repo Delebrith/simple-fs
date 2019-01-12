@@ -11,6 +11,7 @@
 #include "daemon/src/logging/log.h"
 #include "ServerSessionConnector.h"
 #include "daemon/src/diskfunctions/DiskOperations.h"
+#include "daemon/src/management/FileDescriptor.h"
 
 using namespace simplefs;
 
@@ -101,6 +102,7 @@ void simplefs::runExecutor(int connectionSocket)
 }
 
 extern DiskOperations* diskOps;
+extern FileDescriptorTable* fdTable;
 
 void* executor(void* connector)
 {
@@ -109,7 +111,7 @@ void* executor(void* connector)
 	Packet* request = conn->receive();
 	Packet* response = nullptr;
 
-	int fd = 0; //change to actual fd type pointer
+	FileDescriptor* fd = nullptr;
 	
 	simplefs::log::logInfo("Executor", "Recived request %x from process %d", request->getId(), conn->getPid());
 
@@ -140,24 +142,56 @@ void* executor(void* connector)
 			static_cast<OperationWithPathRequest*>(request)->getMode());
 		break;
 	case LSeekRequest::ID:
-		//get and check fd
-		response = diskOps->lseek(fd,
-			static_cast<LSeekRequest*>(request)->getOffset(),
-			static_cast<LSeekRequest*>(request)->getWhence());
+		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
+		if (fd == nullptr)
+		{
+			response = new ErrorResponse();
+			static_cast<ErrorResponse*>(response)->setErrno(EBADF);
+		}
+		else
+		{
+			response = diskOps->lseek(fd,
+				static_cast<LSeekRequest*>(request)->getOffset(),
+				static_cast<LSeekRequest*>(request)->getWhence());
+		}
 		break;
 	case ReadRequest::ID:
-		//get and check fd
-		response = diskOps->read(fd,
-			static_cast<ReadRequest*>(request)->getLen());
+		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
+		if (fd == nullptr)
+		{
+			response = new ErrorResponse();
+			static_cast<ErrorResponse*>(response)->setErrno(EBADF);
+		}
+		else
+		{
+			response = diskOps->read(fd);
+		}
 		break;
 	case WriteRequest::ID:
-		//get and check fd
-		response = diskOps->write(fd,
-			static_cast<WriteRequest*>(request)->getLen());
+		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
+		if (fd == nullptr)
+		{
+			response = new ErrorResponse();
+			static_cast<ErrorResponse*>(response)->setErrno(EBADF);
+		}
+		else
+		{
+			response = diskOps->write(fd,
+				static_cast<WriteRequest*>(request)->getLen());
+		}
 		break;
 	case CloseRequest::ID:
-		//get and check fd
-		response = diskOps->close(fd);
+		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
+		if (fd == nullptr)
+		{
+			response = new ErrorResponse();
+			static_cast<ErrorResponse*>(response)->setErrno(EBADF);
+		}
+		else
+		{
+			fdTable->destroyDescriptor(fd);
+			response = new OKResponse();
+		}
 		break;
 	}
 

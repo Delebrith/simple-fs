@@ -4,53 +4,56 @@
 #include "daemon/src/management/UsageMap.h"
 #include "daemon/src/management/InodeList.h"
 #include "daemon/src/management/Inode.h"
+#include "daemon/src/management/FileDescriptor.h"
 #include "utils/src/IPCPackets.h"
 
-using namespace simplefs;
-
-struct DiskOperations
+namespace simplefs
 {
-    const unsigned int maxInodesCount; // = 100;
-    const unsigned int blockSize; //  = 512;
-    const unsigned int fsSize; //  = 512 * 100;
-    const unsigned int volumeId;
-    const char* volumeName;
 
-    DiskDescriptor* ds;
-    UsageMap* um;
-    InodeList* inodeList;
-    unsigned char* shmaddr;
-    int shmid;
-    key_t key;
+    struct DiskOperations
+    {
+        const unsigned int maxInodesCount; // = 100;
+        const unsigned int blockSize; //  = 512;
+        const unsigned int fsSize; //  = 512 * 100;
+        const unsigned int volumeId;
+        const char* volumeName;
 
-    unsigned char* reallocate(Inode* inode, unsigned int newsize);
+        DiskDescriptor* ds;
+        UsageMap* um;
+        InodeList* inodeList;
+        unsigned char* shmaddr;
+        int shmid;
+        key_t key;
 
-    unsigned char* getShmAddr(unsigned int blockIndex);
+        unsigned char* reallocate(Inode* inode, unsigned int newsize);
 
-    Inode* getInodeById(unsigned int id);
+        unsigned char* getShmAddr(unsigned int blockIndex);
 
-    ErrorResponse* newErrorResponse(int errnum);
+        Inode* getInodeById(unsigned int id);
 
-    int initShm();
-    int initDiskStructures();
-    int initRoot();
+        ErrorResponse* newErrorResponse(int errnum);
 
-    void createNewDirEntry(int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode);
+        int initShm();
+        int initDiskStructures();
+        int initRoot();
 
-    DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize);
-    virtual ~DiskOperations();
+        void createNewDirEntry(int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode);
 
-    Packet* mkdir(char* path, int mode);
-    Packet* open(char* path, int mode);
-    Packet* unlink(char* path);
-    Packet* create(char* path, int mode);
-    Packet* read(int fd, int len);
-    Packet* write(int fd, int len);
-    Packet* lseek(int fd, int offset, int whence);
-    Packet* chmod(char* path, int mode);
+        DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize);
+        virtual ~DiskOperations();
+
+        Packet* mkdir(const char* path, int mode);
+        Packet* open(const char* path, int mode);
+        Packet* unlink(const char* path);
+        Packet* create(const char* path, int mode);
+        Packet* read(FileDescriptor* fd);
+        Packet* write(FileDescriptor* fd, int len);
+        Packet* lseek(FileDescriptor* fd, int offset, int whence);
+        Packet* chmod(const char* path, int mode);
 
 
-    void printUsageMap();
-    void printInodeParams(int i);
-    void printInodes();
+        void printUsageMap();
+        void printInodeParams(int i);
+        void printInodes();
 };
+}
