@@ -106,6 +106,16 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     diskOps->mkdir("/XD1/XD6", 6);
     diskOps->mkdir("/XD1/XD10", 6);
     diskOps->mkdir("/XDD", 6);
+    diskOps->create("/1", 6);
+    diskOps->create("/2", 6);
+    diskOps->create("/2", 6);
+    diskOps->create("/3", 6);
+    diskOps->create("/4", 6);
+    diskOps->create("/5", 6);
+    diskOps->create("/6", 6);
+    diskOps->create("/7", 6);
+    diskOps->create("/8", 6);
+
 
     printUsageMap();
     printInodes();
@@ -117,6 +127,7 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     fdTable->CreateDescriptor(1, diskOps->getInodeById(0), 1);
     fdTable->CreateDescriptor(1, diskOps->getInodeById(1), 1);
     FileDescriptor* miau = fdTable->CreateDescriptor(2, diskOps->getInodeById(1), 1);
+    printf("\n\nTEST: %ld\n", (uint64_t)diskOps->getInodeById(2));
     fdTable->CreateDescriptor(3, diskOps->getInodeById(2), 1);
 
     printf("\n\nFileDescriptorTable one of the inodes from fd list:\n%d\n", fdTable->getDescriptor(3, 0)->inode->id);

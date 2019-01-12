@@ -38,11 +38,13 @@ namespace simplefs
         int initDiskStructures();
         int initRoot();
 
-        void createNewDirEntry(unsigned int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode);
+        void createNewInodeEntry(unsigned int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode, int inodeFileType);
 
         DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize);
         virtual ~DiskOperations();
 
+        int fillInodeWithDirectoryData();
+        Packet* createInode(const char* path, int mode, int inodeFileType);
         Packet* mkdir(const char* path, int mode);
         Packet* open(const char* path, int mode);
         Packet* unlink(const char* path);
