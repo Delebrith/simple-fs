@@ -4,10 +4,12 @@
 #include <stdio.h>
 #include <cstring>
 #include <cstdlib>
+#include <daemon/src/management/FileDescriptor.h>
 #include "management/DiskDescriptor.h"
 #include "management/InodeList.h"
 #include "management/UsageMap.h"
 #include "diskfunctions/DiskOperations.h"
+#include "management/FileDescriptor.h"
 
 const char* VOLUME_NAME = "simplefs";
 const unsigned int VOLUME_ID = 0;
@@ -97,6 +99,50 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
 
     printUsageMap();
     printInodes();
+
+    //delete diskOps;
+
+
+
+
+    // FILE DESCRIPTOR "TESTS"
+    FileDescriptorTable test;
+
+    test.CreateDescriptor(1, diskOps->getInodeById(0), 1);
+    test.CreateDescriptor(1, diskOps->getInodeById(1), 1);
+    FileDescriptor* miau = test.CreateDescriptor(2, diskOps->getInodeById(1), 1);
+    test.CreateDescriptor(3, diskOps->getInodeById(2), 1);
+
+    printf("\n\nFileDescriptorTable one of the inodes from fd list:\n%d\n", test.getDescriptor(3, 0)->inode->id);
+
+    test.destroyDescriptor(miau);
+    test.destroyDescriptor(3, 0);
+
+    printf("if nullptr then destroyed:\n%d\n", test.getDescriptor(3, 0));
+
+
+
+    // INODESTATUSMAP "TESTS"
+    test.inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
+    test.inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
+    test.inodeStatusMap.OpenForWriting(diskOps->getInodeById(1));
+    printf("\n\nInodeStatusMap:\n%d\n%d\n",
+            test.inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
+            test.inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
+    );
+
+    test.inodeStatusMap.Close(diskOps->getInodeById(0));
+    test.inodeStatusMap.Close(diskOps->getInodeById(1));
+    printf("\n%d\n%d\n",
+           test.inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
+           test.inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
+    );
+
+    test.inodeStatusMap.Close(diskOps->getInodeById(0));
+    printf("\n%d\n%d\n",
+           test.inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
+           test.inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
+    );
 
     delete diskOps;
     return 0;
