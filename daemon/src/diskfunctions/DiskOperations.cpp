@@ -496,7 +496,7 @@ Packet *DiskOperations::lseek(FileDescriptor *fd, int offset, int whence)
         return newErrorResponse(ENOSYS);
     if (whence == SEEK_SET)
     {
-        if (offset < 0 || offset >= fd->inode->nodeSize)
+        if (offset < 0 || offset > fd->inode->nodeSize)
             return newErrorResponse(EINVAL);
         fd->position = (unsigned long long)offset;
     }
@@ -507,7 +507,7 @@ Packet *DiskOperations::lseek(FileDescriptor *fd, int offset, int whence)
             newPosition = fd->position + offset;
         else
             newPosition = fd->inode->nodeSize + offset;
-        if (newPosition < 0 || newPosition >= fd->inode->nodeSize)
+        if (newPosition < 0 || newPosition > fd->inode->nodeSize)
             return newErrorResponse(EINVAL);
         fd->position = newPosition;
     }
