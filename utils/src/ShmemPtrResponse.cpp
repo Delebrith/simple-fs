@@ -21,3 +21,11 @@ void ShmemPtrResponse::serialize(char* data)
 	*(ShmemPtr*)data = ptr;
 }
 
+ShmemPtr ShmemPtrResponse::getPtr()
+{
+	return ptr;
+}
+void ShmemPtrResponse::setPtr(ShmemPtr ptr)
+{
+	this->ptr = ptr;
+}

@@ -52,9 +52,10 @@ void ls(Inode* inodeDirectory, simplefs::DiskOperations* diskOps)
     Directory* dir = (Directory*)diskOps->getShmAddr(inodeDirectory->blockAddress);
     InodeDirectoryEntry* directoryEntries = dir->getInodesArray();
     printf("LS, items: %d\n", dir->inodesCount);
+    printf("name\tid\tperm\n");
     for(uint64_t x = 0; x < dir->inodesCount; x++)
     {
-        printf("%s\t%d\n", directoryEntries->inodeName, directoryEntries->inodeId);
+        printf("%s\t%d\t%d\n", directoryEntries->inodeName, directoryEntries->inodeId, diskOps->getInodeById(directoryEntries->inodeId)->permissions);
         directoryEntries++;
     }
 
@@ -66,9 +67,10 @@ void ls(char* dirName, simplefs::DiskOperations* diskOps)
     Directory* dir = (Directory*)diskOps->getShmAddr(inodeDirectory->blockAddress);
     InodeDirectoryEntry* directoryEntries = dir->getInodesArray();
     printf("LS dirname: %s, items: %d\n", dirName, dir->inodesCount);
+    printf("name\tid\tperm\n");
     for(uint64_t x = 0; x < dir->inodesCount; x++)
     {
-        printf("%s\t%d\n", directoryEntries->inodeName, directoryEntries->inodeId);
+        printf("%s\t%d\t%d\n", directoryEntries->inodeName, directoryEntries->inodeId, diskOps->getInodeById(directoryEntries->inodeId)->permissions);
         directoryEntries++;
     }
 
@@ -157,6 +159,10 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     diskOps->create("/7", 0, 1);
     diskOps->create("/8", 0, 1);
 
+    diskOps->chmod("/XD1", S_IROTH | S_IWOTH | S_IXOTH);
+    diskOps->chmod("/XD2", S_IROTH | S_IWOTH);
+    diskOps->chmod("/XD3", S_IROTH);
+
     fdTable->getDescriptor(1,4);
     printf("\nopened node number at fd=4 and pid=1 (should be 4): %d\n", fdTable->getDescriptor(1,4)->number);
 
@@ -167,6 +173,18 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     //resinode = diskOps->getInodeById(0);
     ls("/XD1",diskOps);
     ls("/",diskOps);
+
+    simplefs::Packet* pac = diskOps->open("/XD1", O_RDONLY, 64);
+    int fdNumberToTest = 0;
+    FileDescriptor* fdToTest = diskOps->fdTable->getDescriptor(64, fdNumberToTest);
+
+    diskOps->read(fdToTest, 1000);
+    diskOps->read(fdToTest, 1000);
+    diskOps->read(fdToTest, 1000);
+    diskOps->read(fdToTest, 1000);
+    diskOps->lseek(fdToTest, -1000, SEEK_END);
+    diskOps->read(fdToTest, 1000);
+    diskOps->read(fdToTest, 1000);
 
 
     printUsageMap();
@@ -193,25 +211,30 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     printf("\nRoot dir inode id: %d\n", (diskOps->getInodeById(0)->id));
 
     // INODESTATUSMAP "TESTS"
-    fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
-    fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
-    fdTable->inodeStatusMap.OpenForWriting(diskOps->getInodeById(1));
     printf("\n\nInodeStatusMap:\n%d\n%d\n",
-            fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
-            fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(2))
+    );
+
+    fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
+    fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
+    fdTable->inodeStatusMap.OpenForWriting(diskOps->getInodeById(2));
+    printf("\n%d\n%d\n",
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(2))
     );
 
     fdTable->inodeStatusMap.Close(diskOps->getInodeById(0));
-    fdTable->inodeStatusMap.Close(diskOps->getInodeById(1));
+    fdTable->inodeStatusMap.Close(diskOps->getInodeById(2));
     printf("\n%d\n%d\n",
            fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
-           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(2))
     );
 
     fdTable->inodeStatusMap.Close(diskOps->getInodeById(0));
     printf("\n%d\n%d\n",
            fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(0)),
-           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
+           fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(2))
     );
 
     delete fdTable;
