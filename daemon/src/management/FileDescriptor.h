@@ -25,6 +25,7 @@ struct InodeStatusMap
 
     // returns above stated values
     int InodeStatus(Inode* inode);
+    int OpenForReadWrite(Inode* inode);
     int OpenForWriting(Inode* inode);
     int OpenForReading(Inode* inode);
     int Close(Inode* inode);
@@ -40,6 +41,11 @@ struct FileDescriptor
 {
     const static unsigned char M_READ = 1;
     const static unsigned char M_WRITE = 2;
+    const static unsigned char M_CREATE = 4;
+    const static unsigned char M_CREATE_PERM_R = 8;
+    const static unsigned char M_CREATE_PERM_W = 16;
+    const static unsigned char M_CREATE_PERM_X = 32;
+
 
     Inode* inode;
     int mode;
@@ -68,7 +74,7 @@ struct FileDescriptorTable
 {
     InodeStatusMap inodeStatusMap;
 
-    std::map<int, FileDescriptorProcessTable> fdProcTable;
+
 
     FileDescriptor* CreateDescriptor(int pid, Inode* inode, int mode);
     int destroyDescriptor(int pid, int number);
@@ -81,4 +87,5 @@ struct FileDescriptorTable
 
 private:
     sem_t fdProcTableSemaphore;
+    std::map<int, FileDescriptorProcessTable> fdProcTable;
 };
