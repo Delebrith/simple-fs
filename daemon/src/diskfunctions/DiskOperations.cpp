@@ -590,7 +590,7 @@ Packet* DiskOperations::unlink(const char* path)
 {
     return nullptr;
 }
-Packet* DiskOperations::read(FileDescriptor* fd)
+Packet* DiskOperations::read(FileDescriptor* fd, int len)
 {
     return nullptr;
 }

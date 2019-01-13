@@ -107,6 +107,7 @@ namespace simplefs
 	{
 		ReadRequest req;
 		req.setFD(fd);
+		req.setLen(len);
 	
 		Packet* response = send(req);
 		if (response == nullptr)
