@@ -23,6 +23,7 @@ namespace simplefs
         DiskDescriptor* ds;
         UsageMap* um;
         InodeList* inodeList;
+        Inode* inodes;
         FileDescriptorTable* fdTable;
         unsigned char* shmaddr;
         int shmid;
@@ -34,13 +35,13 @@ namespace simplefs
 
         Inode* getInodeById(unsigned int id);
 
-        ErrorResponse* newErrorResponse(int errnum);
+        Inode* getFreeInodeAddr();
 
         int initShm();
         int initDiskStructures();
         int initRoot();
 
-        Inode* createNewInodeEntry(unsigned int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode, int inodeFileType);
+        Inode* createNewInodeEntry(unsigned int parentInodeId, Inode* inodeAddress, int inodeDataBlockAddress, int mode, int inodeFileType);
 
         DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize, FileDescriptorTable* fdTable);
         virtual ~DiskOperations();

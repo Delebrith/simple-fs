@@ -1,5 +1,6 @@
 #pragma once
 #include <time.h>
+#include <sys/stat.h>
 
 
 
@@ -8,9 +9,9 @@ struct Inode
     const static unsigned int IT_FILE = 0;
     const static unsigned int IT_DIRECTORY = 1;
 
-    const static unsigned int PERM_R = 4;
-    const static unsigned int PERM_W = 2;
-    const static unsigned int PERM_X = 1;
+    const static unsigned int PERM_R = S_IROTH;
+    const static unsigned int PERM_W = S_IWOTH;
+    const static unsigned int PERM_X = S_IXOTH;
 
     unsigned int id;
     unsigned int nodeSize;
