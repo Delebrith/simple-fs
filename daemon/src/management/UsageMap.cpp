@@ -19,19 +19,21 @@ UsageMap::UsageMap(int size, unsigned char *addr)
 
 }
 
-void UsageMap::markBlocks(int from, int to, bool free)
+void UsageMap::markBlocks(int from, int to, bool free, bool lock)
 {
     unsigned char value = free ? FREE : IN_USE;
 
     if (from < 0 || to >= size || from > to) {
         throw DiskException("Invalid bounds");
     }
-    sem_wait(&usageMapSemaphore);
+    if (lock)
+        sem_wait(&usageMapSemaphore);
     if (!free) {
         for (int i = from; i < to; i++) {
             if (blocks[i] == IN_USE)
             {
-                sem_post(&usageMapSemaphore);
+                if (lock)
+                    sem_post(&usageMapSemaphore);
                 throw DiskException("Memory already in use");
             }
         }
@@ -40,14 +42,16 @@ void UsageMap::markBlocks(int from, int to, bool free)
     for (int i = from; i < to; i++) {
         blocks[i] = value;
     }
-    sem_post(&usageMapSemaphore);
+    if (lock)
+        sem_post(&usageMapSemaphore);
 }
 
-int UsageMap::getFreeBlocks(unsigned int requiredBlocks)
+int UsageMap::getFreeBlocks(unsigned int requiredBlocks, bool lock)
 {
     unsigned int freeBlocks = 0;
     unsigned int firstBlock = 0;
-    sem_wait(&usageMapSemaphore);
+    if (lock)
+        sem_wait(&usageMapSemaphore);
     for (int i = 0; i < size; ++i)
     {
         if (blocks[i] == FREE)
@@ -60,12 +64,24 @@ int UsageMap::getFreeBlocks(unsigned int requiredBlocks)
             freeBlocks = 0;
         if (freeBlocks == requiredBlocks)
         {
-            sem_post(&usageMapSemaphore);
+            if (lock)
+                sem_post(&usageMapSemaphore);
             return firstBlock;
         }
     }
-    sem_post(&usageMapSemaphore);
+    if (lock)
+        sem_post(&usageMapSemaphore);
     return -1;
+}
+
+void UsageMap::lock()
+{
+    sem_wait(&usageMapSemaphore);
+}
+
+void UsageMap::unlock()
+{
+    sem_post(&usageMapSemaphore);
 }
 
 UsageMap::~UsageMap()

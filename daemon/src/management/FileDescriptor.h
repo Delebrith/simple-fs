@@ -46,8 +46,6 @@ struct FileDescriptor
     const static unsigned char M_CREATE_PERM_W = 16;
     const static unsigned char M_CREATE_PERM_X = 32;
 
-    sem_t fdSemaphore;
-
     Inode* inode;
     int mode;
     int number;
@@ -55,7 +53,6 @@ struct FileDescriptor
     unsigned long long position = 0;
 
     FileDescriptor(Inode* inode, int mode, int number);
-    ~FileDescriptor();
 };
 
 struct FileDescriptorProcessTable
