@@ -8,6 +8,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <algorithm>    // std::max
 
 
 using namespace simplefs;
@@ -497,12 +498,20 @@ Packet* DiskOperations::mkdir(const char* path, int permissions)
 
 Packet *DiskOperations::lseek(FileDescriptor *fd, int offset, int whence)
 {
-    if (fd->inode->fileType == Inode::IT_DIRECTORY)
-        return newErrorResponse(ENOSYS);
+    if(fd == nullptr) return newErrorResponse(EBADF);
+    sem_wait(&fd->fdSemaphore);
+    /*if (fd->inode->fileType == Inode::IT_DIRECTORY)
+    {
+        sem_post(&fd->fdSemaphore);
+        return newErrorResponse(EISDIR);
+    }*/
     if (whence == SEEK_SET)
     {
         if (offset < 0 || offset > fd->inode->nodeSize)
+        {
+            sem_post(&fd->fdSemaphore);
             return newErrorResponse(EINVAL);
+        }
         fd->position = (unsigned long long)offset;
     }
     else if (whence == SEEK_CUR || whence == SEEK_END)
@@ -513,11 +522,18 @@ Packet *DiskOperations::lseek(FileDescriptor *fd, int offset, int whence)
         else
             newPosition = fd->inode->nodeSize + offset;
         if (newPosition < 0 || newPosition > fd->inode->nodeSize)
+        {
+            sem_post(&fd->fdSemaphore);
             return newErrorResponse(EINVAL);
+        }
         fd->position = newPosition;
     }
     else
+    {
+        sem_post(&fd->fdSemaphore);
         return newErrorResponse(EINVAL);
+    }
+    sem_post(&fd->fdSemaphore);
     return new OKResponse;
 }
 Packet* DiskOperations::create(const char* path, int mode, int pid)
@@ -559,6 +575,11 @@ Packet* DiskOperations::openUsingFileDescriptorFlags(const char* path, int flags
         }
     }
 
+    if(inodeToOpen->fileType == Inode::IT_DIRECTORY && flags != FileDescriptor::M_READ)
+    {
+        return newErrorResponse(EISDIR);
+    }
+
     if((flags & (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) == (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) // RW Access
     {
         if(fdTable->inodeStatusMap.OpenForReadWrite(inodeToOpen))
@@ -592,7 +613,26 @@ Packet* DiskOperations::unlink(const char* path)
 }
 Packet* DiskOperations::read(FileDescriptor* fd, int len)
 {
-    return nullptr;
+    if(fd == nullptr) return newErrorResponse(EBADF);
+    sem_wait(&fd->fdSemaphore);
+
+    int bytesAvailable = std::max((int32_t)0,(int32_t)fd->inode->nodeSize-(int32_t)fd->position);
+    int bytesRead = std::min(bytesAvailable, len);
+
+    printf("\n>READ: %d bytes from %d\n\n", bytesRead, fd->position);
+
+    ShmemPtr shmemPtr;
+    shmemPtr.shmid = shmid;
+    shmemPtr.offset = (unsigned int)(fd->inode->blockAddress*blockSize + fd->position);
+    shmemPtr.size = (unsigned int)bytesRead;
+
+    ShmemPtrResponse* shmemPtrResponse = new ShmemPtrResponse;
+    shmemPtrResponse->setPtr(shmemPtr);
+
+    fd->position += bytesRead;
+
+    sem_post(&fd->fdSemaphore);
+    return shmemPtrResponse;
 }
 Packet* DiskOperations::write(FileDescriptor* fd, int len)
 {
@@ -600,7 +640,29 @@ Packet* DiskOperations::write(FileDescriptor* fd, int len)
 }
 Packet* DiskOperations::chmod(const char* path, int mode)
 {
-    return nullptr;
+    Inode* inodeToOpen = dirNavigate(path);
+    if(inodeToOpen == nullptr) // error
+    {
+        return newErrorResponse(errno);
+    }
+
+    if(fdTable->inodeStatusMap.InodeStatus(inodeToOpen) != 0)
+    {
+        return newErrorResponse(EACCES);
+    }
+
+    sem_wait(&inodeOpSemaphore);
+
+    inodeToOpen->permissions = 0;
+
+    if(mode & S_IROTH) inodeToOpen->permissions |= Inode::PERM_R;
+    if(mode & S_IWOTH) inodeToOpen->permissions |= Inode::PERM_W;
+    if(mode & S_IXOTH) inodeToOpen->permissions |= Inode::PERM_X;
+
+    sem_post(&inodeOpSemaphore);
+
+    return new OKResponse();
+
 }
 
 int DiskOperations::linuxIntoFileDescriptorFlags(int flags)
