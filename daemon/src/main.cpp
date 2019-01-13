@@ -181,7 +181,7 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
 
 
     printf("\nRoot dir inode id: %d\n", (diskOps->getInodeById(0)->id));
-    
+
     // INODESTATUSMAP "TESTS"
     fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
     fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));

@@ -67,7 +67,6 @@ namespace simplefs
 		OperationWithPathRequest(OperationWithPathRequest&&);
 		OperationWithPathRequest& operator=(OperationWithPathRequest);
 
-		int pid;
 		int mode;
 		char* path = nullptr;
 		int pathLen = 0;
