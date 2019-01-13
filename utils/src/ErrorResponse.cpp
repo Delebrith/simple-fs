@@ -13,23 +13,23 @@ int ErrorResponse::getBaseLength()
 void ErrorResponse::deserializeBase(const char* data)
 {
 	data += sizeof(unsigned int);
-	errno = *(const int*)data;
+	err = *(const int*)data;
 }
 
 void ErrorResponse::serialize(char* data)
 {
 	*(unsigned int*)data = ID;
 	data += sizeof(unsigned int);
-	*(int*)data = errno;
+	*(int*)data = err;
 }
 
 void ErrorResponse::setErrno(int errno)
 {
-	this->errno = errno;
+	this->err = err;
 }
 
 int ErrorResponse::getErrno()
 {
-	return errno;
+	return err;
 }
 

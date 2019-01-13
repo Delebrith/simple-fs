@@ -13,12 +13,9 @@
 
 using namespace simplefs;
 
-unsigned int ceil(unsigned int up, unsigned int down)
+inline int ceil(int value, int divisor)
 {
-    unsigned int result = up / down;
-    if (up % down != 0)
-        ++result;
-    return result;
+    return value / divisor + (value % divisor != 0);
 }
 
 unsigned char* DiskOperations::reallocate(Inode* inode, unsigned int newSize)
@@ -28,19 +25,19 @@ unsigned char* DiskOperations::reallocate(Inode* inode, unsigned int newSize)
     unsigned char* toRet = nullptr;
     if (oldBlocks == newBlocks)
     {
-        inode->modificationDate = time(0);
         inode->nodeSize = newSize;
         return getShmAddr(inode->blockAddress);
     }
     else if (oldBlocks > newBlocks)
     {
-        inode->modificationDate = time(0);
         inode->nodeSize = newSize;
-        um->markBlocks(inode->blockAddress + newBlocks, inode->blockAddress + oldBlocks, true);
+        um->markBlocks(inode->blockAddress + newBlocks, inode->blockAddress + oldBlocks, true, false);
         return getShmAddr(inode->blockAddress);
     }
     else
     {
+        um->lock();
+
         bool canExtend = true;
         for (unsigned int x = inode->blockAddress + oldBlocks; x < inode->blockAddress + newBlocks; ++x)
         {
@@ -53,25 +50,25 @@ unsigned char* DiskOperations::reallocate(Inode* inode, unsigned int newSize)
 
         if (canExtend)
         {
-            um->markBlocks(inode->blockAddress + oldBlocks, inode->blockAddress + newBlocks, false);
+            um->markBlocks(inode->blockAddress + oldBlocks, inode->blockAddress + newBlocks, false, false);
             toRet = getShmAddr(inode->blockAddress);
         }
         else
         {
-            int freeBlocksStart = um->getFreeBlocks(newBlocks);
-            if (freeBlocksStart == -1)
-                return nullptr;
-
-            toRet = getShmAddr((unsigned int)freeBlocksStart);
-            um->markBlocks(freeBlocksStart, freeBlocksStart + newBlocks, false);
-            memcpy(toRet, getShmAddr(inode->blockAddress), inode->nodeSize);
-            um->markBlocks(inode->blockAddress, inode->blockAddress + oldBlocks, true);
-            inode->blockAddress = (unsigned int)freeBlocksStart;
+            int freeBlocksStart = um->getFreeBlocks(newBlocks, false);
+            if (freeBlocksStart != -1)
+            {
+                toRet = getShmAddr((unsigned int)freeBlocksStart);
+                um->markBlocks(freeBlocksStart, freeBlocksStart + newBlocks, false, false);
+                memcpy(toRet, getShmAddr(inode->blockAddress), inode->nodeSize);
+                um->markBlocks(inode->blockAddress, inode->blockAddress + oldBlocks, true, false);
+                inode->blockAddress = (unsigned int)freeBlocksStart;
+            }
         }
 
-        inode->modificationDate = time(0);
         inode->nodeSize = newSize;
 
+        um->unlock();
         return toRet;
     }
 }
@@ -147,7 +144,7 @@ int DiskOperations::initDiskStructures()
             + ceil(ds->blocksCount, blockSize) * blockSize);
 
     inodeList = new InodeList(ds, inodeTableAddr);
-    um->markBlocks(0, numBlocks, false);
+    um->markBlocks(0, numBlocks, false, true);
 
     return 0;
 }
@@ -155,26 +152,20 @@ int DiskOperations::initDiskStructures()
 int DiskOperations::initRoot()
 {
     unsigned int inodeBlocks = ceil(sizeof(Inode), blockSize);
-    int inodeBlockAddress = um->getFreeBlocks(inodeBlocks);
+    int inodeBlockAddress = um->getFreeBlocks(inodeBlocks, false);
     if (inodeBlockAddress == -1)
         return -1;
-    um->markBlocks(inodeBlockAddress, inodeBlockAddress + inodeBlocks, false);
+    um->markBlocks(inodeBlockAddress, inodeBlockAddress + inodeBlocks, false, false);
 
     unsigned int inodeDataBlocks = ceil(2 * sizeof(InodeDirectoryEntry) + sizeof(Directory), blockSize);
-    int inodeDataBlockAddress = um->getFreeBlocks(inodeDataBlocks);
+    int inodeDataBlockAddress = um->getFreeBlocks(inodeDataBlocks, false);
     if (inodeDataBlockAddress == -1)
         return -1;
-    um->markBlocks(inodeDataBlockAddress, inodeDataBlockAddress + inodeDataBlocks, false);
+    um->markBlocks(inodeDataBlockAddress, inodeDataBlockAddress + inodeDataBlocks, false, false);
 
     createNewInodeEntry(0, inodeBlockAddress, inodeDataBlockAddress, Inode::PERM_R | Inode::PERM_W, Inode::IT_DIRECTORY);
 
     return 0;
-}
-
-ErrorResponse* DiskOperations::newErrorResponse(int errnum) {
-    ErrorResponse* errorResponse = new ErrorResponse;
-    errorResponse -> setErrno(errnum);
-    return errorResponse;
 }
 
 Inode* DiskOperations::createNewInodeEntry(unsigned int parentInodeId, int inodeBlockAddress, int inodeDataBlockAddress, int mode, int inodeFileType)
@@ -182,7 +173,7 @@ Inode* DiskOperations::createNewInodeEntry(unsigned int parentInodeId, int inode
     Inode* inode = (Inode*)(getShmAddr((unsigned int)inodeBlockAddress));
 
     inode->id = ds->freeInodeId++;
-    inode->fileType = inodeFileType; //Inode::IT_DIRECTORY;
+    inode->fileType = inodeFileType;
     inode->permissions = mode & (Inode::PERM_W | Inode::PERM_R | Inode::PERM_X);
     inode->modificationDate = time(0);
     inode->accessDate = time(0);
@@ -361,6 +352,7 @@ Inode* DiskOperations::createInode(const char *path, int mode, int inodeFileType
     int startIndex = 1;
     int endIndex = 1;
     unsigned int parentInodeId = 0;
+
     sem_wait(&inodeOpSemaphore);
     while (endIndex < pathLength)
     {
@@ -435,7 +427,7 @@ Inode* DiskOperations::createInode(const char *path, int mode, int inodeFileType
                 return nullptr;
             }
             unsigned int inodeBlocks = ceil(sizeof(Inode), blockSize);
-            int inodeBlockAddress = um->getFreeBlocks(inodeBlocks);
+            int inodeBlockAddress = um->getFreeBlocks(inodeBlocks, false);
             if (inodeBlockAddress == -1)
             {
                 sem_post(&inodeOpSemaphore);
@@ -445,7 +437,8 @@ Inode* DiskOperations::createInode(const char *path, int mode, int inodeFileType
                 return nullptr;
 
             }
-            um->markBlocks(inodeBlockAddress, inodeBlockAddress+inodeBlocks, false);
+            um->lock();
+            um->markBlocks(inodeBlockAddress, inodeBlockAddress+inodeBlocks, false, false);
 
             unsigned int inodeDataBlocks = 1;
 
@@ -454,26 +447,31 @@ Inode* DiskOperations::createInode(const char *path, int mode, int inodeFileType
                 inodeDataBlocks = ceil(2 * sizeof(InodeDirectoryEntry) + sizeof(Directory), blockSize);
             }
 
-            int inodeDataBlockAddress = um->getFreeBlocks(inodeDataBlocks);
+            int inodeDataBlockAddress = um->getFreeBlocks(inodeDataBlocks, false);
             if (inodeDataBlockAddress == -1)
             {
-                um->markBlocks(inodeBlockAddress, inodeBlockAddress+inodeBlocks, true);
+                um->markBlocks(inodeBlockAddress, inodeBlockAddress+inodeBlocks, true, false);
                 sem_post(&inodeOpSemaphore);
                 delete[] folderName;
 
                 errno = ENOSPC;
+                um->unlock();
                 return nullptr;
 
             }
-            um->markBlocks(inodeDataBlockAddress, inodeDataBlockAddress+inodeDataBlocks, false);
-
+            um->markBlocks(inodeDataBlockAddress, inodeDataBlockAddress+inodeDataBlocks, false, false);
+            um->unlock();
 
             createNewInodeEntry(parentInodeId, inodeBlockAddress, inodeDataBlockAddress, mode, inodeFileType);
 
 
             Inode* inode = (Inode*)(getShmAddr((unsigned int)inodeBlockAddress));
             parentDir = (Directory *)reallocate(parentInode, parentDir->getSize() + sizeof(InodeDirectoryEntry));
-            parentDir->addEntry(InodeDirectoryEntry(inode->id, folderName));
+            if (parentDir != nullptr)
+            {
+                parentDir->addEntry(InodeDirectoryEntry(inode->id, folderName));
+                parentInode->modificationDate = time(0);
+            }
 
             sem_post(&inodeOpSemaphore);
             delete[] folderName;
@@ -490,27 +488,18 @@ Packet* DiskOperations::mkdir(const char* path, int permissions)
 {
     Inode* ret = createInode(path, permissions, Inode::IT_DIRECTORY);
     if(ret == nullptr)
-    {
-        return newErrorResponse(errno);
-    }
+        return new ErrorResponse(errno);
+
     return new OKResponse();
 }
 
 Packet *DiskOperations::lseek(FileDescriptor *fd, int offset, int whence)
 {
-    if(fd == nullptr) return newErrorResponse(EBADF);
-    sem_wait(&fd->fdSemaphore);
-    /*if (fd->inode->fileType == Inode::IT_DIRECTORY)
-    {
-        sem_post(&fd->fdSemaphore);
-        return newErrorResponse(EISDIR);
-    }*/
     if (whence == SEEK_SET)
     {
         if (offset < 0 || offset > fd->inode->nodeSize)
         {
-            sem_post(&fd->fdSemaphore);
-            return newErrorResponse(EINVAL);
+            return new ErrorResponse(EINVAL);
         }
         fd->position = (unsigned long long)offset;
     }
@@ -522,18 +511,12 @@ Packet *DiskOperations::lseek(FileDescriptor *fd, int offset, int whence)
         else
             newPosition = fd->inode->nodeSize + offset;
         if (newPosition < 0 || newPosition > fd->inode->nodeSize)
-        {
-            sem_post(&fd->fdSemaphore);
-            return newErrorResponse(EINVAL);
-        }
+            return new ErrorResponse(EINVAL);
+
         fd->position = newPosition;
     }
     else
-    {
-        sem_post(&fd->fdSemaphore);
-        return newErrorResponse(EINVAL);
-    }
-    sem_post(&fd->fdSemaphore);
+        return new ErrorResponse(EINVAL);
     return new OKResponse;
 }
 Packet* DiskOperations::create(const char* path, int mode, int pid)
@@ -561,44 +544,44 @@ Packet* DiskOperations::openUsingFileDescriptorFlags(const char* path, int flags
                 inodeToOpen = createInode(path, permissions, Inode::IT_FILE);
                 if(inodeToOpen == nullptr)
                 {
-                    return newErrorResponse(errno);
+                    return new ErrorResponse(errno);
                 }
             }
             else
             {
-                return newErrorResponse(errno);
+                return new ErrorResponse(errno);
             }
         }
         else
         {
-            return newErrorResponse(errno);
+            return new ErrorResponse(errno);
         }
     }
 
     if(inodeToOpen->fileType == Inode::IT_DIRECTORY && flags != FileDescriptor::M_READ)
     {
-        return newErrorResponse(EISDIR);
+        return new ErrorResponse(EISDIR);
     }
 
     if((flags & (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) == (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) // RW Access
     {
         if(fdTable->inodeStatusMap.OpenForReadWrite(inodeToOpen))
         {
-            return newErrorResponse(errno);
+            return new ErrorResponse(errno);
         }
     }
     if(flags & FileDescriptor::M_READ) // Ronly Access
     {
         if(fdTable->inodeStatusMap.OpenForReading(inodeToOpen))
         {
-            return newErrorResponse(errno);
+            return new ErrorResponse(errno);
         }
     }
     if(flags & FileDescriptor::M_WRITE) // Wonly Access
     {
         if(fdTable->inodeStatusMap.OpenForWriting(inodeToOpen))
         {
-            return newErrorResponse(errno);
+            return new ErrorResponse(errno);
         }
     }
 
@@ -613,13 +596,13 @@ Packet* DiskOperations::unlink(const char* path)
 }
 Packet* DiskOperations::read(FileDescriptor* fd, int len)
 {
-    if(fd == nullptr) return newErrorResponse(EBADF);
-    sem_wait(&fd->fdSemaphore);
 
     int bytesAvailable = std::max((int32_t)0,(int32_t)fd->inode->nodeSize-(int32_t)fd->position);
     int bytesRead = std::min(bytesAvailable, len);
 
     printf("\n>READ: %d bytes from %d\n\n", bytesRead, fd->position);
+
+    fd->inode->accessDate = time(0);
 
     ShmemPtr shmemPtr;
     shmemPtr.shmid = shmid;
@@ -631,25 +614,41 @@ Packet* DiskOperations::read(FileDescriptor* fd, int len)
 
     fd->position += bytesRead;
 
-    sem_post(&fd->fdSemaphore);
     return shmemPtrResponse;
 }
+
 Packet* DiskOperations::write(FileDescriptor* fd, int len)
 {
-    return nullptr;
+    if (fd->mode & FileDescriptor::M_WRITE == 0)
+        return new ErrorResponse(EBADF);
+
+    int newPos = fd->position + len;
+
+    unsigned char* shmempos = reallocate(fd->inode, newPos);
+    
+    if (shmempos == nullptr)
+        return new ErrorResponse(EFBIG);
+
+    ShmemPtr ptr = ShmemPtr{.shmid=shmid, .offset=fd->inode->blockAddress*blockSize + fd->position, .size=len};
+    ShmemPtrResponse* response = new ShmemPtrResponse;
+
+    response->setPtr(ptr);
+
+    fd->inode->modificationDate = time(0);
+    fd->inode->accessDate = time(0);
+    fd->position = newPos;
+
+    return response;
 }
+
 Packet* DiskOperations::chmod(const char* path, int mode)
 {
     Inode* inodeToOpen = dirNavigate(path);
     if(inodeToOpen == nullptr) // error
-    {
-        return newErrorResponse(errno);
-    }
+        return new ErrorResponse(errno);
 
     if(fdTable->inodeStatusMap.InodeStatus(inodeToOpen) != 0)
-    {
-        return newErrorResponse(EACCES);
-    }
+        return new ErrorResponse(EACCES);
 
     sem_wait(&inodeOpSemaphore);
 

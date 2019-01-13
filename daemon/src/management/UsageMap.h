@@ -14,9 +14,12 @@ struct UsageMap
     UsageMap(int size, unsigned char* addr);
 
     // free = true if blocks will be freed, false if blocks will be allocated
-    void markBlocks(int from, int to, bool free);
+    void markBlocks(int from, int to, bool free, bool lock);
 
-    int getFreeBlocks(unsigned int requiredBlocks);
+    int getFreeBlocks(unsigned int requiredBlocks, bool lock);
+
+    void lock();
+    void unlock();
 
     ~UsageMap();
 

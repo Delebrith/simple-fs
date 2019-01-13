@@ -13,6 +13,7 @@
 #include "diskfunctions/DiskOperations.h"
 #include "communication/ServerListener.h"
 #include "management/FileDescriptor.h"
+#include "logging/log.h"
 
 
 const char* VOLUME_NAME = "simplefs";
@@ -118,19 +119,19 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     if (diskOps->initShm() == -1)
     {
         delete diskOps;
-        printf("%d\n", errno);
+        simplefs::log::logError("INIT", "Error creating memory: %d\n", errno);
         return 1;
     }
     else if (diskOps->initDiskStructures() == -1)
     {
         delete diskOps;
-        printf("%d\n", errno);
+        simplefs::log::logError("INIT", "Error creating structures: %d\n", errno);
         return 1;
     }
     else if (diskOps->initRoot() == -1)
     {
         delete diskOps;
-        printf("%d\n", errno);
+        simplefs::log::logError("INIT", "Error initializing root: %d\n", errno);
         return 1;
     }
     printUsageMap();

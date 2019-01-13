@@ -124,13 +124,6 @@ FileDescriptor::FileDescriptor(Inode* inode, int mode, int number)
     this->inode = inode;
     this->mode = mode;
     this->number = number;
-
-    sem_init(&fdSemaphore, 0, 1);
-}
-
-FileDescriptor::~FileDescriptor()
-{
-    sem_destroy(&fdSemaphore);
 }
 
 FileDescriptor* FileDescriptorProcessTable::CreateDescriptor(Inode* inode, int mode)

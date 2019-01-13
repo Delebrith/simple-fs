@@ -146,10 +146,7 @@ void* executor(void* connector)
 	case LSeekRequest::ID:
 		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
 		if (fd == nullptr)
-		{
-			response = new ErrorResponse();
-			static_cast<ErrorResponse*>(response)->setErrno(EBADF);
-		}
+			response = new ErrorResponse(EBADF);
 		else
 		{
 			response = diskOps->lseek(fd,
@@ -160,10 +157,7 @@ void* executor(void* connector)
 	case ReadRequest::ID:
 		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
 		if (fd == nullptr)
-		{
-			response = new ErrorResponse();
-			static_cast<ErrorResponse*>(response)->setErrno(EBADF);
-		}
+			response = new ErrorResponse(EBADF);
 		else
 		{
 			response = diskOps->read(fd,
@@ -173,10 +167,7 @@ void* executor(void* connector)
 	case WriteRequest::ID:
 		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
 		if (fd == nullptr)
-		{
-			response = new ErrorResponse();
-			static_cast<ErrorResponse*>(response)->setErrno(EBADF);
-		}
+			response = new ErrorResponse(EBADF);
 		else
 		{
 			response = diskOps->write(fd,
@@ -186,10 +177,7 @@ void* executor(void* connector)
 	case CloseRequest::ID:
 		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
 		if (fd == nullptr)
-		{
-			response = new ErrorResponse();
-			static_cast<ErrorResponse*>(response)->setErrno(EBADF);
-		}
+			response = new ErrorResponse(EBADF);
 		else
 		{
 			fdTable->destroyDescriptor(fd);
