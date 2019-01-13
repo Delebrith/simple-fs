@@ -133,6 +133,12 @@ int DiskOperations::initDiskStructures()
     ds->freeInodeId = 0;
     strcpy(ds->volumeName, volumeName);
 
+    int numBlocks = ceil(sizeof(DiskDescriptor), blockSize)
+                    + ceil(ds->blocksCount, blockSize) + ceil(sizeof(InodeListEntry) * ds->maxInodesCount, blockSize);
+
+    if (numBlocks > ds->blocksCount)
+        return -1;
+
     unsigned char* bitmap = shmaddr + blockSize;
     um = new UsageMap(ds->blocksCount, bitmap);
 
@@ -140,9 +146,6 @@ int DiskOperations::initDiskStructures()
             + ceil(ds->blocksCount, blockSize) * blockSize);
 
     inodeList = new InodeList(ds, inodeTableAddr);
-
-    int numBlocks = ceil(sizeof(DiskDescriptor), blockSize)
-            + ceil(ds->blocksCount, blockSize) + ceil(sizeof(InodeListEntry) * ds->maxInodesCount, blockSize);
     um->markBlocks(0, numBlocks, false);
 
     return 0;
@@ -206,6 +209,8 @@ Inode* DiskOperations::createNewInodeEntry(unsigned int parentInodeId, int inode
 
 DiskOperations::~DiskOperations()
 {
+    delete um;
+    delete inodeList;
     sem_destroy(&inodeOpSemaphore);
 
     shmdt(shmaddr);

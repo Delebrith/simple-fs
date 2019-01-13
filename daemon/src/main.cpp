@@ -115,12 +115,22 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
 
     if (diskOps->initShm() == -1)
     {
+        delete diskOps;
         printf("%d\n", errno);
         return 1;
     }
-
-    diskOps->initDiskStructures();
-    diskOps->initRoot();
+    else if (diskOps->initDiskStructures() == -1)
+    {
+        delete diskOps;
+        printf("%d\n", errno);
+        return 1;
+    }
+    else if (diskOps->initRoot() == -1)
+    {
+        delete diskOps;
+        printf("%d\n", errno);
+        return 1;
+    }
     printUsageMap();
     printInodes();
 
@@ -204,6 +214,7 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
            fdTable->inodeStatusMap.InodeStatus(diskOps->getInodeById(1))
     );
 
+    delete fdTable;
     delete diskOps;
     return 0;
 }
