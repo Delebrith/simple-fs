@@ -55,9 +55,6 @@ namespace simplefs
 
 		virtual void serialize(char* data);
 
-		int getPid();
-		void setPid(int);
-
 		int getMode();
 		void setMode(int);
 		

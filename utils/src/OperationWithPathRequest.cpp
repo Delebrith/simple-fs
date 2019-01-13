@@ -48,16 +48,6 @@ void OperationWithPathRequest::serialize(char* data)
 	memcpy(data, path, pathLen);
 }
 
-int OperationWithPathRequest::getPid()
-{
-	return pid;
-}
-
-void OperationWithPathRequest::setPid(int pid)
-{
-	this->pid = pid;
-}
-
 int OperationWithPathRequest::getMode()
 {
 	return mode;

@@ -121,13 +121,13 @@ void* executor(void* connector)
 		response = diskOps->create(
 			static_cast<OperationWithPathRequest*>(request)->getPath(),
 			static_cast<OperationWithPathRequest*>(request)->getMode(),
-			static_cast<OperationWithPathRequest*>(request)->getPid());
+			conn->getPid());
 		break;
 	case OperationWithPathRequest::Open:
 		response = diskOps->open(
 			static_cast<OperationWithPathRequest*>(request)->getPath(),
 			static_cast<OperationWithPathRequest*>(request)->getMode(),
-			static_cast<OperationWithPathRequest*>(request)->getPid());
+			conn->getPid());
 		break;
 	case OperationWithPathRequest::Chmd:
 		response = diskOps->chmod(

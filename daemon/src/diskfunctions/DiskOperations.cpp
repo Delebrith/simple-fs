@@ -517,21 +517,26 @@ Packet *DiskOperations::lseek(FileDescriptor *fd, int offset, int whence)
 }
 Packet* DiskOperations::create(const char* path, int mode, int pid)
 {
-    return open(path, (mode & FileDescriptor::M_WRITE) | FileDescriptor::M_CREATE | FileDescriptor::M_CREATE_PERM_W, pid);
+    // mode is not used here.
+    return open(path, O_CREAT | O_WRONLY, pid);
 }
-Packet* DiskOperations::open(const char* path, int mode, int pid)
+Packet* DiskOperations::open(const char* path, int flags, int pid)
+{
+    return openUsingFileDescriptorFlags(path, linuxIntoFileDescriptorFlags(flags), pid);
+}
+Packet* DiskOperations::openUsingFileDescriptorFlags(const char* path, int flags, int pid)
 {
     Inode* inodeToOpen = dirNavigate(path);
     if(inodeToOpen == nullptr) // eventually creating a file
     {
         if(errno == ENOENT)
         {
-            if(mode & FileDescriptor::M_CREATE)
+            if(flags & FileDescriptor::M_CREATE)
             {
                 unsigned int permissions = 0;
-                if(mode & FileDescriptor::M_CREATE_PERM_R) permissions |= Inode::PERM_R;
-                if(mode & FileDescriptor::M_CREATE_PERM_W) permissions |= Inode::PERM_W;
-                if(mode & FileDescriptor::M_CREATE_PERM_X) permissions |= Inode::PERM_X;
+                if(flags & FileDescriptor::M_CREATE_PERM_R) permissions |= Inode::PERM_R;
+                if(flags & FileDescriptor::M_CREATE_PERM_W) permissions |= Inode::PERM_W;
+                if(flags & FileDescriptor::M_CREATE_PERM_X) permissions |= Inode::PERM_X;
                 inodeToOpen = createInode(path, permissions, Inode::IT_FILE);
                 if(inodeToOpen == nullptr)
                 {
@@ -549,21 +554,21 @@ Packet* DiskOperations::open(const char* path, int mode, int pid)
         }
     }
 
-    if((mode & (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) == (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) // RW Access
+    if((flags & (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) == (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) // RW Access
     {
         if(fdTable->inodeStatusMap.OpenForReadWrite(inodeToOpen))
         {
             return newErrorResponse(errno);
         }
     }
-    if(mode & FileDescriptor::M_READ) // Ronly Access
+    if(flags & FileDescriptor::M_READ) // Ronly Access
     {
         if(fdTable->inodeStatusMap.OpenForReading(inodeToOpen))
         {
             return newErrorResponse(errno);
         }
     }
-    if(mode & FileDescriptor::M_WRITE) // Wonly Access
+    if(flags & FileDescriptor::M_WRITE) // Wonly Access
     {
         if(fdTable->inodeStatusMap.OpenForWriting(inodeToOpen))
         {
@@ -571,7 +576,7 @@ Packet* DiskOperations::open(const char* path, int mode, int pid)
         }
     }
 
-    FileDescriptor* fd = fdTable->CreateDescriptor(pid, inodeToOpen, mode);
+    FileDescriptor* fd = fdTable->CreateDescriptor(pid, inodeToOpen, flags);
     FDResponse* fdres = new FDResponse();
     fdres->setFD(fd->number);
     return fdres;
@@ -591,4 +596,23 @@ Packet* DiskOperations::write(FileDescriptor* fd, int len)
 Packet* DiskOperations::chmod(const char* path, int mode)
 {
     return nullptr;
+}
+
+int DiskOperations::linuxIntoFileDescriptorFlags(int flags)
+{
+    int outmode = 0;
+
+    if(flags & O_WRONLY) outmode |= FileDescriptor::M_WRITE;
+    else if(flags & O_RDWR) outmode |= FileDescriptor::M_WRITE | FileDescriptor::M_READ;
+    else outmode |= FileDescriptor::M_READ;
+
+    if(flags & O_CREAT)
+    {
+        // let's permissions just be RW
+        outmode |= FileDescriptor::M_CREATE;
+        outmode |= FileDescriptor::M_CREATE_PERM_R;
+        outmode |= FileDescriptor::M_CREATE_PERM_W;
+    }
+
+    return outmode;
 }

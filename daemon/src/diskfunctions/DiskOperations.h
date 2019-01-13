@@ -49,7 +49,8 @@ namespace simplefs
         Inode* createInode(const char* path, int mode, int inodeFileType);
 
         Packet* mkdir(const char* path, int permissions);
-        Packet* open(const char* path, int mode, int pid);
+        Packet* open(const char* path, int flags, int pid); // Linux compatible flags
+        Packet* openUsingFileDescriptorFlags(const char* path, int flags, int pid); // flags from FileDescriptor
         Packet* unlink(const char* path);
         Packet* create(const char* path, int mode, int pid);
         Packet* read(FileDescriptor* fd);
@@ -57,6 +58,7 @@ namespace simplefs
         Packet* lseek(FileDescriptor* fd, int offset, int whence);
         Packet* chmod(const char* path, int mode);
 
+        int linuxIntoFileDescriptorFlags(int flags);
 
         void printUsageMap();
         void printInodeParams(int i);

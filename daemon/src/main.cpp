@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <cstring>
 #include <cstdlib>
+#include <fcntl.h>
 #include <daemon/src/management/FileDescriptor.h>
 #include "management/DiskDescriptor.h"
 #include "management/InodeList.h"
@@ -12,6 +13,7 @@
 #include "diskfunctions/DiskOperations.h"
 #include "communication/ServerListener.h"
 #include "management/FileDescriptor.h"
+
 
 const char* VOLUME_NAME = "simplefs";
 const unsigned int VOLUME_ID = 0;
@@ -135,15 +137,15 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     diskOps->mkdir("/XD1/XD6", 6);
     diskOps->mkdir("/XD1/XD10", 6);
     diskOps->mkdir("/XDD", 6);
-    diskOps->create("/1", 6, 1);
-    diskOps->create("/2", 6, 1);
-    diskOps->create("/2", 6, 1);
-    diskOps->create("/3", 6, 1);
-    diskOps->open("/4", FileDescriptor::M_CREATE, 1);
-    diskOps->create("/5", 6, 1);
-    diskOps->create("/6", 6, 1);
-    diskOps->create("/7", 6, 1);
-    diskOps->create("/8", 6, 1);
+    diskOps->create("/1", 0, 1);
+    diskOps->create("/2", 0, 1);
+    diskOps->create("/2", 0, 1);
+    diskOps->create("/3", 0, 1);
+    diskOps->open("/4", O_CREAT, 1);
+    diskOps->create("/5", 0, 1);
+    diskOps->create("/6", 0, 1);
+    diskOps->create("/7", 0, 1);
+    diskOps->create("/8", 0, 1);
 
     fdTable->getDescriptor(1,4);
     printf("\nopened node number at fd=4 and pid=1 (should be 4): %d\n", fdTable->getDescriptor(1,4)->number);
@@ -179,6 +181,7 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
 
 
     printf("\nRoot dir inode id: %d\n", (diskOps->getInodeById(0)->id));
+    
     // INODESTATUSMAP "TESTS"
     fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
     fdTable->inodeStatusMap.OpenForReading(diskOps->getInodeById(0));
