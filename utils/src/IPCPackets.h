@@ -115,8 +115,12 @@ namespace simplefs
 		int getFD();
 		void setFD(int);
 
+		int getLen();
+		void setLen(int);
+
 	private:
 		int fd;
+		int len;
 	};
 
 	class WriteRequest : public Packet

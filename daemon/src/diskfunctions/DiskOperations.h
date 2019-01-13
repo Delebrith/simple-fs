@@ -53,7 +53,7 @@ namespace simplefs
         Packet* openUsingFileDescriptorFlags(const char* path, int flags, int pid); // flags from FileDescriptor
         Packet* unlink(const char* path);
         Packet* create(const char* path, int mode, int pid);
-        Packet* read(FileDescriptor* fd);
+        Packet* read(FileDescriptor* fd, int len);
         Packet* write(FileDescriptor* fd, int len);
         Packet* lseek(FileDescriptor* fd, int offset, int whence);
         Packet* chmod(const char* path, int mode);

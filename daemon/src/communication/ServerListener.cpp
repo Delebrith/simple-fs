@@ -166,7 +166,8 @@ void* executor(void* connector)
 		}
 		else
 		{
-			response = diskOps->read(fd);
+			response = diskOps->read(fd,
+				static_cast<ReadRequest*>(request)->getLen());
 		}
 		break;
 	case WriteRequest::ID:
