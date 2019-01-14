@@ -307,7 +307,6 @@ Inode* DiskOperations::dirNavigate(const char* path, int& error)
         return parent;
 
     int lastMemberLen = getLastMemberLen(path, pathLen);
-printf("%s\n", path + pathLen - lastMemberLen);
     return getMember(parent, path + pathLen - lastMemberLen, lastMemberLen, error);
 }
 

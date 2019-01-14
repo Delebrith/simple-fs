@@ -84,7 +84,7 @@ struct FileDescriptorTable
     FileDescriptorTable();
     ~FileDescriptorTable();
 
-//private:
+private:
     sem_t fdProcTableSemaphore;
     std::map<int, FileDescriptorProcessTable> fdProcTable;
 };
