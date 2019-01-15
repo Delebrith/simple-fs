@@ -12,62 +12,62 @@
 namespace simplefs
 {
 
-    struct DiskOperations
-    {
-        const unsigned int maxInodesCount; // = 100;
-        const unsigned int blockSize; //  = 512;
-        const unsigned int fsSize; //  = 512 * 100;
-        const unsigned int volumeId;
-        const char* volumeName;
+	struct DiskOperations
+	{
+		const unsigned int maxInodesCount; // = 100;
+		const unsigned int blockSize; //  = 512;
+		const unsigned int fsSize; //  = 512 * 100;
+		const unsigned int volumeId;
+		const char* volumeName;
 
-        DiskDescriptor* ds;
-        UsageMap* um;
-        InodeList* inodeList;
-        Inode* inodes;
-        FileDescriptorTable* fdTable;
-        unsigned char* shmaddr;
-        int shmid;
-        key_t key;
+		DiskDescriptor* ds;
+		UsageMap* um;
+		InodeList* inodeList;
+		Inode* inodes;
+		FileDescriptorTable* fdTable;
+		unsigned char* shmaddr;
+		int shmid;
+		key_t key;
 
-        unsigned char* reallocate(Inode* inode, unsigned int newsize);
+		unsigned char* reallocate(Inode* inode, unsigned int newsize);
 
-        unsigned char* getShmAddr(unsigned int blockIndex);
+		unsigned char* getShmAddr(unsigned int blockIndex);
 
-        Inode* getInodeById(unsigned int id);
+		Inode* getInodeById(unsigned int id);
 
-        Inode* getFreeInodeAddr();
+		Inode* getFreeInodeAddr();
 
-        int initShm();
-        int initDiskStructures();
-        int initRoot();
+		int initShm();
+		int initDiskStructures();
+		int initRoot();
 
-        Inode* createNewInodeEntry(unsigned int parentInodeId, Inode* inodeAddress, int inodeDataBlockAddress, int mode, int inodeFileType);
+		Inode* createNewInodeEntry(unsigned int parentInodeId, Inode* inodeAddress, int inodeDataBlockAddress, int mode, int inodeFileType);
 
-        DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize, FileDescriptorTable* fdTable);
-        virtual ~DiskOperations();
+		DiskOperations(const char* volumeName, unsigned int volumeId, unsigned int maxInodesCount, unsigned int blockSize, unsigned int fsSize, FileDescriptorTable* fdTable);
+		virtual ~DiskOperations();
 
-        int fillInodeWithDirectoryData();
-        Inode* dirNavigate(const char* path, int& error);
-        Inode* getMember(Inode* parentDirInode, const char* name, int nameLen, int& error);
-        Inode* getParent(const char* path, int pathLen, int &error);
-        Inode* createInode(const char* path, int mode, int inodeFileType);
+		int fillInodeWithDirectoryData();
+		Inode* dirNavigate(const char* path, int& error);
+		Inode* getMember(Inode* parentDirInode, const char* name, int nameLen, int& error);
+		Inode* getParent(const char* path, int pathLen, int &error);
+		Inode* createInode(const char* path, int mode, int inodeFileType);
 
-        Packet* mkdir(const char* path, int permissions);
-        Packet* open(const char* path, int flags, int pid); // Linux compatible flags
-        Packet* openUsingFileDescriptorFlags(const char* path, int flags, int pid); // flags from FileDescriptor
-        Packet* unlink(const char* path);
-        Packet* create(const char* path, int mode, int pid);
-        Packet* read(FileDescriptor* fd, int len);
-        Packet* write(FileDescriptor* fd, int len);
-        Packet* lseek(FileDescriptor* fd, int offset, int whence);
-        Packet* chmod(const char* path, int mode);
+		Packet* mkdir(const char* path, int permissions);
+		Packet* open(const char* path, int flags, int pid); // Linux compatible flags
+		Packet* openUsingFileDescriptorFlags(const char* path, int flags, int pid); // flags from FileDescriptor
+		Packet* unlink(const char* path);
+		Packet* create(const char* path, int mode, int pid);
+		Packet* read(FileDescriptor* fd, int len);
+		Packet* write(FileDescriptor* fd, int len);
+		Packet* lseek(FileDescriptor* fd, int offset, int whence);
+		Packet* chmod(const char* path, int mode);
 
-        int linuxIntoFileDescriptorFlags(int flags);
+		int linuxIntoFileDescriptorFlags(int flags);
 
-        void printUsageMap();
-        void printInodeParams(int i);
-        void printInodes();
-    private:
-        sem_t inodeOpSemaphore;
-    };
+		void printUsageMap();
+		void printInodeParams(int i);
+		void printInodes();
+	private:
+		sem_t inodeOpSemaphore;
+	};
 }

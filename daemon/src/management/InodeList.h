@@ -6,15 +6,15 @@
 
 struct InodeList
 {
-    DiskDescriptor* diskDescriptor;
-    InodeListEntry* inodesArray;
+	DiskDescriptor* diskDescriptor;
+	InodeListEntry* inodesArray;
 
-    InodeList(DiskDescriptor* dd, InodeListEntry* addr);
-    void addInodeEntry(InodeListEntry inodeListEntry);
-    void deleteInodeEntry(unsigned int inodeId);
-    InodeListEntry* getById(unsigned int inodeId);
-    ~InodeList();
+	InodeList(DiskDescriptor* dd, InodeListEntry* addr);
+	void addInodeEntry(InodeListEntry inodeListEntry);
+	void deleteInodeEntry(unsigned int inodeId);
+	InodeListEntry* getById(unsigned int inodeId);
+	~InodeList();
 
 private:
-    sem_t inodeListSemaphore;
+	sem_t inodeListSemaphore;
 };
