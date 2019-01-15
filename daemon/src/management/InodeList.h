@@ -1,16 +1,20 @@
 #pragma once
 
 #include "InodeEntry.h"
+#include "DiskDescriptor.h"
+#include <semaphore.h>
 
 struct InodeList
 {
-    unsigned int maxSize;
-    unsigned int inodesCount;
-    InodeListEntry* inodesArray;
+	DiskDescriptor* diskDescriptor;
+	InodeListEntry* inodesArray;
 
-    InodeList(unsigned int maxSize);
-    void addInodeEntry(InodeListEntry inodeListEntry);
-    void deleteInodeEntry(unsigned int inodeId);
-    InodeListEntry* getById(unsigned int inodeId);
-    ~InodeList();
+	InodeList(DiskDescriptor* dd, InodeListEntry* addr);
+	void addInodeEntry(InodeListEntry inodeListEntry);
+	void deleteInodeEntry(unsigned int inodeId);
+	InodeListEntry* getById(unsigned int inodeId);
+	~InodeList();
+
+private:
+	sem_t inodeListSemaphore;
 };

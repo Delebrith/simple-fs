@@ -115,8 +115,12 @@ namespace simplefs
 		int getFD();
 		void setFD(int);
 
+		int getLen();
+		void setLen(int);
+
 	private:
 		int fd;
+		int len;
 	};
 
 	class WriteRequest : public Packet
@@ -180,6 +184,7 @@ namespace simplefs
 	public:
 		static const unsigned int ID = 'FAIL';
 		ErrorResponse() : Packet(ID) {}
+		ErrorResponse(int err) : Packet(ID) { this->err = err; }
 		
 		virtual int getBaseLength();
 
@@ -191,7 +196,7 @@ namespace simplefs
 		void setErrno(int);
 	
 	private:
-		int errno;
+		int err;
 	};
 
 	class FDResponse : public Packet

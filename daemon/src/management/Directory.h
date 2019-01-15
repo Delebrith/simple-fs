@@ -4,19 +4,23 @@
 
 struct Directory
 {
-    unsigned int inodesCount;
-    InodeDirectoryEntry *inodesArray;
+	unsigned int inodesCount;
 
-    Directory(unsigned int parentInodeId, unsigned int inodeId);
+	unsigned int getSize();
 
-    // If you want to modify name of the entry delete one entry
-    // and replace it with new one with method below to avoid conflicting names
-    void addEntry(InodeDirectoryEntry entry);
-    void deleteEntry(unsigned int inodeId);
 
-    const char* listDirectory();
+	InodeDirectoryEntry* getInodesArray();
 
-    InodeDirectoryEntry* getByName(char* inodeName);
+	Directory(unsigned int parentInodeId, unsigned int inodeId);
+	void init(unsigned int parentInodeId, unsigned int inodeId);
+	// If you want to modify name of the entry delete one entry
+	// and replace it with new one with method below to avoid conflicting names
+	void addEntry(InodeDirectoryEntry entry);
+	void deleteEntry(unsigned int inodeId);
 
-    ~Directory();
+	const char* listDirectory();
+
+	InodeDirectoryEntry* getByName(char* inodeName);
+
+	~Directory();
 };

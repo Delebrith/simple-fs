@@ -23,3 +23,7 @@ void FDResponse::serialize(char* data)
 	*(int*)data = fd;
 }
 
+void FDResponse::setFD(int number)
+{
+	fd = number;
+}
