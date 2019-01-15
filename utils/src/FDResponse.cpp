@@ -27,3 +27,8 @@ void FDResponse::setFD(int number)
 {
 	fd = number;
 }
+
+int FDResponse::getFD()
+{
+	return fd;
+}

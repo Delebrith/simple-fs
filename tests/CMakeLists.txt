@@ -1,5 +1,7 @@
 configure_file(src/run_tests.sh "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/run_tests.sh" COPYONLY)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/tests/manual")
+
 add_executable(mkdir src/manual/mkdir.cpp)
 add_executable(read src/manual/read.cpp)
 add_executable(write src/manual/write.cpp)
@@ -13,3 +15,5 @@ target_link_libraries(write lib)
 target_link_libraries(chmod lib)
 target_link_libraries(create lib)
 target_link_libraries(ls lib)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")

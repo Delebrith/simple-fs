@@ -106,6 +106,8 @@ extern FileDescriptorTable* fdTable;
 
 void* executor(void* connector)
 {
+	simplefs::log::logInfo("Executor", "Started executor");
+	
 	ServerSessionConnector* conn = static_cast<ServerSessionConnector*>(connector);
 
 	Packet* request = conn->receive();

@@ -66,7 +66,7 @@ const char* OperationWithPathRequest::getPath()
 
 void OperationWithPathRequest::setPath(const char* path)
 {
-	delete[] path;
+	delete[] this->path;
 	pathLen = strlen(path);
 	this->path = new char[pathLen + 1];
 	strcpy(this->path, path);
