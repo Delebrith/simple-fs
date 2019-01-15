@@ -1,19 +1,19 @@
 #include "lib/src/simplefs.h"
 
-#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <iostream>
 #include <cstdio>
 
 int main(int argc, char** argv)
 {
-	if (argv != 2)
+	if (argc != 2)
 	{
 		std::cout << "Usage: read <path>" << std::endl;
 		return -1;
 	}
 
-	fd = simplefs::simplefs_open(argv[1], O_RDONLY);
+	int fd = simplefs::simplefs_open(argv[1], O_RDONLY);
 
 	if (fd < 0)
 	{

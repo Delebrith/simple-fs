@@ -5,10 +5,11 @@ add_executable(read src/manual/read.cpp)
 add_executable(write src/manual/write.cpp)
 add_executable(chmod src/manual/chmod.cpp)
 add_executable(create src/manual/create.cpp)
+add_executable(ls src/manual/ls.cpp)
 
 target_link_libraries(mkdir lib)
 target_link_libraries(read lib)
 target_link_libraries(write lib)
 target_link_libraries(chmod lib)
 target_link_libraries(create lib)
-
+target_link_libraries(ls lib)
