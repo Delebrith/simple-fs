@@ -63,7 +63,8 @@ void ls(Inode* inodeDirectory, simplefs::DiskOperations* diskOps)
 }
 void ls(char* dirName, simplefs::DiskOperations* diskOps)
 {
-    Inode* inodeDirectory = diskOps->dirNavigate(dirName);
+    int error;
+    Inode* inodeDirectory = diskOps->dirNavigate(dirName, error);
 
     Directory* dir = (Directory*)diskOps->getShmAddr(inodeDirectory->blockAddress);
     InodeDirectoryEntry* directoryEntries = dir->getInodesArray();
@@ -137,6 +138,8 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     printUsageMap();
     printInodes();
 
+    int error;
+
     diskOps->mkdir("/XD1", 6);
     diskOps->mkdir("/XD2", 6);
     diskOps->mkdir("/XD3", 6);
@@ -160,16 +163,19 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     diskOps->create("/7", 0, 1);
     diskOps->create("/8", 0, 1);
 
+    diskOps->unlink("/1");
+
     diskOps->chmod("/XD1", S_IROTH | S_IWOTH | S_IXOTH);
     diskOps->chmod("/XD2", S_IROTH | S_IWOTH);
     diskOps->chmod("/XD3", S_IROTH);
 
     fdTable->getDescriptor(1,4);
+
     printf("\nopened node number at fd=4 and pid=1 (should be 4): %d\n", fdTable->getDescriptor(1,4)->number);
 
     Inode* resinode = 0;
     printf("\ndir navigation test before: %ld\n", (uint64_t)resinode);
-    resinode = diskOps->dirNavigate("/XD1");
+    resinode = diskOps->dirNavigate("/XD1", error);
     printf("dir navigation testafter (should be nonzero): %ld\n\n", (uint64_t)resinode);
     //resinode = diskOps->getInodeById(0);
     ls("/XD1",diskOps);
