@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 		std::cout << "Error while opening: " << err << std::endl;
 		return -1;
 	}
-
+std::cout << "FD: " << fd << std::endl;
 	char buf[32];
 	int ret;
 	while (ret = simplefs::simplefs_read(fd, buf, 32))

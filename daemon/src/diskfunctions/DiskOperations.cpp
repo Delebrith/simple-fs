@@ -11,6 +11,8 @@
 #include <algorithm>	// std::max
 
 
+#include <iostream>
+
 using namespace simplefs;
 
 inline int ceil(int value, int divisor)
@@ -561,6 +563,7 @@ Packet* DiskOperations::openUsingFileDescriptorFlags(const char* path, int flags
 	}
 
 	FileDescriptor* fd = fdTable->CreateDescriptor(pid, inodeToOpen, flags);
+std::cout << "CREAT_DESC\n";
 	FDResponse* fdres = new FDResponse();
 	fdres->setFD(fd->number);
 
@@ -637,9 +640,12 @@ Packet* DiskOperations::unlink(const char* path)
 	sem_post(&inodeOpSemaphore);
 	return new OKResponse;
 }
+
+#include <iostream>
+
 Packet* DiskOperations::read(FileDescriptor* fd, int len)
 {
-
+std::cout << "READ_FUNC\n";
 	int bytesAvailable = std::max((int32_t)0,(int32_t)fd->inode->nodeSize-(int32_t)fd->position);
 	int bytesRead = std::min(bytesAvailable, len);
 
