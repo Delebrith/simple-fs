@@ -27,9 +27,9 @@ FileDescriptorTable* fdTable;
 
 void printUsageMap()
 {
-	for (int x = 0; x < diskOps->um->size; ++x)
+	for (int x = 0; x < diskOps->usageMap->size; ++x)
 	{
-		printf("%d ", diskOps->um->blocks[x]);
+		printf("%d ", diskOps->usageMap->blocks[x]);
 	}
 	printf("\n");
 }
@@ -44,7 +44,7 @@ void printInodeParams(int i)
 
 void printInodes()
 {
-	for (int i = 0; i < diskOps->ds->inodesCount; ++i)
+	for (int i = 0; i < diskOps->diskDescriptor->inodesCount; ++i)
 		printInodeParams(i);
 }
 

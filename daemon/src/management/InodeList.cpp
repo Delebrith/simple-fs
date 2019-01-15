@@ -66,7 +66,6 @@ InodeListEntry* InodeList::getById(unsigned int inodeId)
 
 InodeList::~InodeList()
 {
-	// delete[] inodesArray;
 	sem_destroy(&inodeListSemaphore);
 }
 

@@ -15,6 +15,4 @@ void InodeDirectoryEntry::init(unsigned int inodeId, const char *inodeName)
 InodeDirectoryEntry::InodeDirectoryEntry() {}
 
 InodeDirectoryEntry::~InodeDirectoryEntry()
-{
-	// delete[] inodeName;
-}
+{}

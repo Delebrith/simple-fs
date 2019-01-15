@@ -7,7 +7,11 @@ add_executable(daemon
 		src/management/UsageMap.cpp
 		src/management/DiskException.h
 		src/management/InodeDirectoryEntry.cpp
-	src/logging/Log.cpp src/diskfunctions/DiskOperations.cpp src/diskfunctions/DiskOperations.h src/management/FileDescriptor.cpp src/management/FileDescriptor.h)
+		src/logging/Log.cpp
+		src/diskfunctions/DiskOperations.cpp
+		src/diskfunctions/DiskOperations.h
+		src/management/FileDescriptor.cpp
+		src/management/FileDescriptor.h)
 
 find_package(Threads REQUIRED)
 

@@ -5,7 +5,6 @@
 struct Directory
 {
 	unsigned int inodesCount;
-	//InodeDirectoryEntry inodesArray[99999999];
 
 	unsigned int getSize();
 

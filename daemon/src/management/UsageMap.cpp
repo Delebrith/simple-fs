@@ -2,13 +2,6 @@
 #include "UsageMap.h"
 #include "DiskException.h"
 
-/*UsageMap::UsageMap(int size)
-{
-	this->size = size;
-	this->blocks = new unsigned char[size];
-	*this->blocks = {0};
-}*/
-
 UsageMap::UsageMap(int size, unsigned char *addr)
 {
 	this->size = size;
@@ -86,6 +79,5 @@ void UsageMap::unlock()
 
 UsageMap::~UsageMap()
 {
-	// delete[] blocks;
 	sem_destroy(&usageMapSemaphore);
 }

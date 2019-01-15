@@ -14,14 +14,14 @@ namespace simplefs
 
 	struct DiskOperations
 	{
-		const unsigned int maxInodesCount; // = 100;
-		const unsigned int blockSize; //  = 512;
-		const unsigned int fsSize; //  = 512 * 100;
+		const unsigned int maxInodesCount;
+		const unsigned int blockSize;
+		const unsigned int fsSize;
 		const unsigned int volumeId;
 		const char* volumeName;
 
-		DiskDescriptor* ds;
-		UsageMap* um;
+		DiskDescriptor* diskDescriptor;
+		UsageMap* usageMap;
 		InodeList* inodeList;
 		Inode* inodes;
 		FileDescriptorTable* fdTable;

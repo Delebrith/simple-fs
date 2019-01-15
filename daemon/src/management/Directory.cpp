@@ -11,7 +11,6 @@ Directory::Directory(unsigned int parentInodeId, unsigned int inodeId)
 void Directory::init(unsigned int parentInodeId, unsigned int inodeId)
 {
 	this->inodesCount = 2;
-	// this->getInodesArray() = new InodeDirectoryEntry[inodesCount];
 
 	InodeDirectoryEntry* inodesArray = getInodesArray();
 	// parent directory
@@ -30,27 +29,19 @@ unsigned int Directory::getSize()
 
 InodeDirectoryEntry* Directory::getInodesArray()
 {
-	return (InodeDirectoryEntry*)(this + 1 /*sizeof(Directory)*/);
+	return (InodeDirectoryEntry*)(this + 1);
 }
 
 // reallocation BEFORE this function
 void Directory::addEntry(InodeDirectoryEntry entry)
 {
 	InodeDirectoryEntry* inodesArrayAddr = getInodesArray();
-	for (int i = 0; i < inodesCount; i++) {
+	for (int i = 0; i < inodesCount; i++)
+	{
 		if (strcmp(inodesArrayAddr[i].inodeName, entry.inodeName) == 0)
 			throw DiskException("Name duplication");
 	}
-
-   // InodeDirectoryEntry* old = this->getInodesArray();
-  //  getInodesArray() = new InodeDirectoryEntry[inodesCount];
-
-  //  for (int i = 0; i < inodesCount; i++) {
-  //	  getInodesArray()[i] = old[i];
- //   }
 	inodesArrayAddr[inodesCount++] = entry;
-
-  //  delete[] old;
 }
 
 // reallocation AFTER this function
@@ -95,6 +86,4 @@ const char* Directory::listDirectory()
 }
 
 Directory::~Directory()
-{
-	//delete[] getInodesArray();
-}
+{}

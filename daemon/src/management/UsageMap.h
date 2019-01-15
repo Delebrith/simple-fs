@@ -10,7 +10,6 @@ struct UsageMap
 	int size;
 	unsigned char* blocks;
 
-   // UsageMap(int size);
 	UsageMap(int size, unsigned char* addr);
 
 	// free = true if blocks will be freed, false if blocks will be allocated

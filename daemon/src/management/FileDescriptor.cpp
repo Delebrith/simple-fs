@@ -1,7 +1,4 @@
 #include "FileDescriptor.h"
-//
-// Created by nkp123 on 12.01.19.
-//
 
 int InodeStatusMap::InodeStatus(Inode* inode)
 {
@@ -112,7 +109,7 @@ int InodeStatusMap::Close(Inode* inode)
 }
 InodeStatusMap::InodeStatusMap()
 {
-	sem_init(&statusMapSemaphore, 0 /* U SURE? */, 1);
+	sem_init(&statusMapSemaphore, 0, 1);
 }
 InodeStatusMap::~InodeStatusMap()
 {
