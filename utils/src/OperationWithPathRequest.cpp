@@ -47,6 +47,7 @@ std::cout << type;
 	*(unsigned int*)data = pathLen;
 	data += sizeof(unsigned int);
 	memcpy(data, path, pathLen);
+std::cout << "PLEN: " << pathLen << std::endl;
 }
 
 int OperationWithPathRequest::getMode()

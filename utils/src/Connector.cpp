@@ -49,6 +49,9 @@ std::cout << "Read " << id << std::endl;
 		return nullptr;
 std::cout << "Read2\n";
 	read(socketFD, basicBuffer, received->getBaseLength());
+
+	received->deserializeBase(basicBuffer);
+
 	if (received->getRemainderLength() == 0)
 		return received;
 std::cout << "Read3\n";
@@ -58,6 +61,7 @@ std::cout << "Read3\n";
 		delete received;
 		return nullptr;
 	}
+
 std::cout << "Read4\n";
 	return received;
 }
