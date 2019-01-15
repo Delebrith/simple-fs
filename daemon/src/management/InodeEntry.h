@@ -1,4 +1,5 @@
 #pragma once
+#include "Inode.h"
 
 struct InodeEntry
 {
@@ -18,5 +19,5 @@ struct InodeDirectoryEntry: InodeEntry
 
 struct InodeListEntry: InodeEntry
 {
-    unsigned int inodeAddress; // block num
+    Inode* inodeAddress;
 };
