@@ -32,6 +32,6 @@ ClientConnector::ClientConnector()
 	if (write(sock, &pid, sizeof(pid_t)) == -1)
 		return;
 
-	setOk(false);
+	setOk(true);
 }
 

@@ -36,10 +36,11 @@ char* OperationWithPathRequest::getRemainderBuffer()
 	path[pathLen] = 0;
 	return path;
 }
-
+#include <iostream>
 void OperationWithPathRequest::serialize(char* data)
 {
 	*(unsigned int*)data = type;
+std::cout << type;
 	data += sizeof(unsigned int);
 	*(int*)data = mode;
 	data += sizeof(int);
