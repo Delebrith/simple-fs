@@ -37,7 +37,7 @@ void printUsageMap()
 void printInodeParams(int i)
 {
     InodeListEntry id = diskOps->inodeList->inodesArray[i];
-    printf("%d %d ", id.inodeId, id.inodeAddress);
+    printf("%d %p ", id.inodeId, id.inodeAddress);
     Inode* in = diskOps->getInodeById(id.inodeId);
     printf("%d %d\n", in->blockAddress, in->permissions);
 }
@@ -204,7 +204,7 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
     fdTable->CreateDescriptor(10, diskOps->getInodeById(0), 1);
     fdTable->CreateDescriptor(10, diskOps->getInodeById(1), 1);
     FileDescriptor* miau = fdTable->CreateDescriptor(11, diskOps->getInodeById(1), 1);
-    printf("\n\nTEST: %ld\n", (uint64_t)diskOps->getInodeById(2));
+    printf("\n\nTEST: %p\n", diskOps->getInodeById(2));
     fdTable->CreateDescriptor(12, diskOps->getInodeById(2), 1);
 
     printf("\n\nFileDescriptorTable one of the inodes from fd list:\n%d\n", fdTable->getDescriptor(12, 0)->inode->id);
