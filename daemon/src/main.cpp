@@ -135,6 +135,9 @@ int main(int argc, const char** argv) // ./daemon.out vol_name vol_id fs_size bl
 		simplefs::log::logError("INIT", "Error initializing root: %d\n", errno);
 		return 1;
 	}
+	
+	runServer();
+	
 	delete fdTable;
 	delete diskOps;
 	return 0;
