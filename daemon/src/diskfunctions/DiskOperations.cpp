@@ -612,8 +612,8 @@ Packet* DiskOperations::unlink(const char* path)
         return new ErrorResponse(EPERM);
     }
 
-    int removedLen = getLastMemberLen(path, len);
-    Inode* removed = getMember(parent, path - removedLen, removedLen, error);
+    int removedNameLen = getLastMemberLen(path, len);
+    Inode* removed = getMember(parent, path - removedNameLen, removedNameLen, error);
 
     if(removed == nullptr)
     {
@@ -627,10 +627,23 @@ Packet* DiskOperations::unlink(const char* path)
         return new ErrorResponse(ENOTEMPTY);
     }
 
+    if (fdTable->inodeStatusMap.InodeStatus(removed) != 0)
+    {
+        sem_post(&inodeOpSemaphore);
+        return new ErrorResponse(EBUSY);
+    }
+
     Directory* parentDir = (Directory*)getShmAddr(parent->blockAddress);
 
     parentDir->deleteEntry(removed->id);
     reallocate(parent, ceil(parentDir->getSize(), blockSize));
+
+    int block = removed->blockAddress;
+    int removedSize = removed->nodeSize;
+
+    inodeList->deleteInodeEntry(removed->id);
+
+    um->markBlocks(block, block + ceil(removedSize, blockSize), true, true);
 
     sem_post(&inodeOpSemaphore);
     return new OKResponse;
