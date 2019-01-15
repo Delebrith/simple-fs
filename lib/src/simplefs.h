@@ -2,7 +2,7 @@
 
 #include <sys/stat.h>
 
-#ifdef C_PLUS_PLUS
+#ifdef __cplusplus
 namespace simplefs
 {
 #define EXTERN_C extern "C"
@@ -20,7 +20,7 @@ EXTERN_C int simplefs_lseek(int fd, int offset, int whence);
 EXTERN_C int simplefs_chmode(const char* path, mode_t mode);
 EXTERN_C int simplefs_close(int fd);
 
-#ifdef C_PLUS_PLUS
+#ifdef __cplusplus
 }
 #endif
 
