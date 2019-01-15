@@ -12,7 +12,6 @@ int ErrorResponse::getBaseLength()
 
 void ErrorResponse::deserializeBase(const char* data)
 {
-	data += sizeof(unsigned int);
 	err = *(const int*)data;
 }
 

@@ -21,8 +21,6 @@ int OperationWithPathRequest::getRemainderLength()
 
 void OperationWithPathRequest::deserializeBase(const char* data)
 {
-	data += sizeof(unsigned int);
-
 	mode = *(const int*)data;
 	data += sizeof(int);
 
@@ -40,14 +38,12 @@ char* OperationWithPathRequest::getRemainderBuffer()
 void OperationWithPathRequest::serialize(char* data)
 {
 	*(unsigned int*)data = type;
-std::cout << type;
 	data += sizeof(unsigned int);
 	*(int*)data = mode;
 	data += sizeof(int);
 	*(unsigned int*)data = pathLen;
 	data += sizeof(unsigned int);
 	memcpy(data, path, pathLen);
-std::cout << "PLEN: " << pathLen << std::endl;
 }
 
 int OperationWithPathRequest::getMode()

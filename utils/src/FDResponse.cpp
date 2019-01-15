@@ -12,7 +12,6 @@ int FDResponse::getBaseLength()
 
 void FDResponse::deserializeBase(const char* data)
 {
-	data += sizeof(unsigned int);
 	fd = *(const int*)data;
 }
 

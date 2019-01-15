@@ -25,7 +25,7 @@ int Connector::send(Packet& packet)
 	packet.serialize(buffer);
 
 std::cout << "BUF:" << buffer << std::endl;
-
+std::cout << "SENDING: " << size;
 	if (write(socketFD, buffer, size) == -1)
 	{
 		delete[] buffer;
@@ -48,10 +48,10 @@ std::cout << "Read " << id << std::endl;
 	if (received == nullptr)
 		return nullptr;
 std::cout << "Read2\n";
-	read(socketFD, basicBuffer, received->getBaseLength());
+	read(socketFD, basicBuffer, received->getBaseLength() - sizeof(unsigned int));
 
 	received->deserializeBase(basicBuffer);
-
+std::cout << "RECEIVING: " << received->getRemainderLength();
 	if (received->getRemainderLength() == 0)
 		return received;
 std::cout << "Read3\n";
