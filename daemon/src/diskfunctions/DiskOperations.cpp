@@ -244,6 +244,9 @@ void DiskOperations::printInodes()
 
 int getLastMemberLen(const char* path, int pathLen)
 {
+	if (pathLen == 1)
+		return 1;
+		
 	int len = 1;
 
 	for (const char* ch = path + pathLen - 2; ch != path; ++len, --ch)
