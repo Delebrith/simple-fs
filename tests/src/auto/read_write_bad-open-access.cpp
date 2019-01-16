@@ -125,7 +125,7 @@ int main(int argc, char** argv)
     if (read_with(path, O_RDWR, 0) != 0)
         return -1;
 
-    if (read_with(path, O_WRONLY, 0) != 0)
+    if (read_with(path, O_WRONLY, EBADF) != 0)
         return -1;
 
     return 0;
