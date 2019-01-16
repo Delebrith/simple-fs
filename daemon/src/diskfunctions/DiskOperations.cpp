@@ -22,6 +22,7 @@ inline int ceil(int value, int divisor)
 
 unsigned char* DiskOperations::reallocate(Inode* inode, unsigned int newSize)
 {
+std::cout << "REALLOCATE FROM " << inode->nodeSize << " B TO " << newSize << " B\n";
 	unsigned int oldBlocks = ceil(inode->nodeSize, blockSize);
 	unsigned int newBlocks = ceil(newSize, blockSize);
 	unsigned char* toRet = nullptr;
@@ -568,6 +569,7 @@ std::cout << "OPENING: " << path;
 
 	if((flags & (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) == (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) // RW Access
 	{
+std::cout <<"OPENING RW\n";
 		if(fdTable->inodeStatusMap.OpenForReadWrite(inodeToOpen))
 		{
 			sem_post(&inodeOpSemaphore);
@@ -576,6 +578,7 @@ std::cout << "OPENING: " << path;
 	}
 	if(flags & FileDescriptor::M_READ) // Ronly Access
 	{
+std::cout <<"OPENING R\n";
 		if(fdTable->inodeStatusMap.OpenForReading(inodeToOpen))
 		{
 			sem_post(&inodeOpSemaphore);
@@ -584,6 +587,7 @@ std::cout << "OPENING: " << path;
 	}
 	if(flags & FileDescriptor::M_WRITE) // Wonly Access
 	{
+std::cout <<"OPENING W\n";
 		if(fdTable->inodeStatusMap.OpenForWriting(inodeToOpen))
 		{
 			sem_post(&inodeOpSemaphore);
@@ -634,7 +638,7 @@ Packet* DiskOperations::unlink(const char* path)
 	}
 
 	int removedNameLen = getLastMemberLen(path, len);
-	Inode* removed = getMember(parent, path - removedNameLen, removedNameLen, error);
+	Inode* removed = getMember(parent, path + len - removedNameLen, removedNameLen, error);
 
 	if(removed == nullptr)
 	{
@@ -657,7 +661,7 @@ Packet* DiskOperations::unlink(const char* path)
 	Directory* parentDir = (Directory*)getShmAddr(parent->blockAddress);
 
 	parentDir->deleteEntry(removed->id);
-	reallocate(parent, ceil(parentDir->getSize(), blockSize));
+	reallocate(parent, parentDir->getSize());
 
 	int block = removed->blockAddress;
 	int removedSize = removed->nodeSize;

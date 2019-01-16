@@ -44,12 +44,15 @@ void Directory::addEntry(InodeDirectoryEntry entry)
 	inodesArrayAddr[inodesCount++] = entry;
 }
 
+#include <iostream>
 // reallocation AFTER this function
 void Directory::deleteEntry(unsigned int inodeId)
 {
+	std::cout << "DELETING INODE ENTRY " << inodeId << std::endl;
 	InodeDirectoryEntry* inodesArrayAddr = getInodesArray();
 	for (int i = 0; i < inodesCount; i++)
 	{
+	std::cout << "CHECKING INODE ENTRY " <<inodesArrayAddr[i].inodeName << " OF " << inodesCount << " ID: " << inodesArrayAddr[i].inodeId << std::endl;
 		if (inodesArrayAddr[i].inodeId == inodeId)
 		{
 			inodesCount--;
@@ -58,8 +61,9 @@ void Directory::deleteEntry(unsigned int inodeId)
 			{
 				inodesArrayAddr[j] = inodesArrayAddr[j+1];
 			}
+
+			return;
 		}
-		break;
 	}
 	throw DiskException("No such inode in the directory");
 }

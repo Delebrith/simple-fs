@@ -2,10 +2,11 @@
 
 using namespace simplefs;
 
+#include <iostream>
 
 int WriteRequest::getBaseLength()
 {
-	return sizeof(unsigned int) + sizeof(int);
+	return sizeof(unsigned int) + 2 * sizeof(int);
 }
 
 void WriteRequest::deserializeBase(const char* data)

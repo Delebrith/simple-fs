@@ -1,5 +1,7 @@
 #include "FileDescriptor.h"
 
+#include <iostream>
+
 int InodeStatusMap::InodeStatus(Inode* inode)
 {
 	int ret;
@@ -41,6 +43,7 @@ int InodeStatusMap::OpenForWriting(Inode* inode)
 	sem_wait(&statusMapSemaphore);
 		if (statusMap.find(inode) != statusMap.end())
 		{
+std::cout << "CANNOT OPEN FOR WRITING: " << statusMap[inode] << std::endl;
 			errno = EBADF; //ENOSYS;
 			ret = -1;
 		}
@@ -79,7 +82,7 @@ int InodeStatusMap::OpenForReading(Inode* inode)
 int InodeStatusMap::Close(Inode* inode)
 {
 	int ret;
-
+std::cout << "CLOSING INODE\n";
 	sem_wait(&statusMapSemaphore);
 		if (statusMap.find(inode) == statusMap.end())
 		{
@@ -99,6 +102,7 @@ int InodeStatusMap::Close(Inode* inode)
 
 			if(statusMap[inode] == 0)
 			{
+				std::cout << "REMOVING CLOSED FROM STATUS MAP\n";
 				statusMap.erase(inode);
 			}
 			ret = 0;
@@ -170,6 +174,7 @@ int FileDescriptorTable::destroyDescriptor(FileDescriptor* fd)
 	sem_wait(&fdProcTableSemaphore);
 		int number = fd->number;
 		int pid = -1;
+		Inode* inode;
 
 		std::map<int, FileDescriptorProcessTable>::iterator itFdProcTable;
 
@@ -184,6 +189,7 @@ int FileDescriptorTable::destroyDescriptor(FileDescriptor* fd)
 				if(itFdByFdNumber->second == fd)
 				{
 					pid = itFdProcTable->first;
+					inode = itFdByFdNumber->second->inode;
 					break;
 				}
 			}
@@ -191,6 +197,10 @@ int FileDescriptorTable::destroyDescriptor(FileDescriptor* fd)
 
 		if (pid == -1) res = -1; // fd not found
 		else res = fdProcTable[pid].DestroyDescriptor(number);
+
+		if (res == 0)
+			inodeStatusMap.Close(inode);
+
 	sem_post(&fdProcTableSemaphore);
 
 
