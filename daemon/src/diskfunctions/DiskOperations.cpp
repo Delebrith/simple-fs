@@ -246,7 +246,7 @@ int getLastMemberLen(const char* path, int pathLen)
 {
 	if (pathLen == 1)
 		return 1;
-		
+
 	int len = 1;
 
 	for (const char* ch = path + pathLen - 2; ch != path; ++len, --ch)
@@ -352,59 +352,6 @@ Inode* DiskOperations::dirNavigate(const char* path, int& error)
 
 Inode* DiskOperations::createInode(const char *path, int mode, int inodeFileType, int& error)
 {
-/*	size_t pathLength = strlen(path);
-	if (pathLength < 1)
-	{
-		errno = ENOENT;
-		return nullptr;
-	}
-
-	else if (pathLength == 1)
-	{
-		if (path[0] != '/')
-		{
-			errno = ENOTDIR;
-			return nullptr;
-		}
-		else
-		{
-			errno = EEXIST;
-			return nullptr;
-		}
-	}
-	else if (path[0] != '/')
-	{
-		errno = ENOTDIR;
-		return nullptr;
-	}
-	int startIndex = 1;
-	int endIndex = 1;
-	unsigned int parentInodeId = 0;
-
-	while (endIndex < pathLength)
-	{
-		while (path[endIndex] != '/' && path[endIndex] != '\0')
-			++endIndex;
-		char* folderName = new char[endIndex - startIndex + 1];
-		folderName[endIndex - startIndex] = '\0';
-		strncpy(folderName, path + startIndex, (size_t)endIndex - startIndex);
-		Inode* parentInode = getInodeById(parentInodeId);
-
-		if ((parentInode->permissions & Inode::PERM_R) == 0)
-		{
-			delete[] folderName;
-
-			errno = EACCES;
-			return nullptr;
-		}
-
-		
-		delete[] folderName;
-	}
-
-	errno = ENOSYS;
-	return nullptr; */
-
 	int pathLen = strlen(path);
 
 	Inode* parent = getParent(path, pathLen, error);
@@ -557,6 +504,13 @@ std::cout << "OPENING: " << path;
 	{
 		sem_post(&inodeOpSemaphore);
 		return new ErrorResponse(EISDIR);
+	}
+
+	if (flags & FileDescriptor::M_READ && !(inodeToOpen->permissions & Inode::PERM_R) ||
+		flags & FileDescriptor::M_WRITE && !(inodeToOpen->permissions & Inode::PERM_W))
+	{
+		sem_post(&inodeOpSemaphore);
+		return new ErrorResponse(EACCES);
 	}
 
 	if((flags & (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) == (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) // RW Access
