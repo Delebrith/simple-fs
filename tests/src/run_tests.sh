@@ -4,25 +4,23 @@ if ls daemon 1> /dev/null 2>&1;
 then
 	if ls tests/auto/* 1> /dev/null 2>&1; 
 	then
+        n_all=0
+        n_ok=0
+
 		for filename in `ls tests/auto`
-
-	n_all=0
-	n_ok=0
-
-		for filename in "tests/auto/*"
 		do
 			n_all=$(($n_all+1))
 
 			echo "Running $filename..."
 
-			./daemon 1> /dev/null &
+			./daemon  &
 			daemon_pid=$!
 			sleep 1
 
 			echo "Started daemon"
 
 			./tests/auto/$filename
-	
+
 			result=$?
 			if [[ $result -eq 0 ]];
 			then
