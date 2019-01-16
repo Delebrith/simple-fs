@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    path = ".";
+    path = "/.";
 
     ret = simplefs::simplefs_mkdir(path, 0);
 
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    path = "..";
+    path = "/..";
 
     ret = simplefs::simplefs_mkdir(path, 0);
 
