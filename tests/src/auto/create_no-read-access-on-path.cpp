@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
     char* path = "/dir";
 
-    int ret = simplefs::simplefs_create(path, 0);
+    int ret = simplefs::simplefs_mkdir(path, 0);
 
     if (ret < 0)
     {

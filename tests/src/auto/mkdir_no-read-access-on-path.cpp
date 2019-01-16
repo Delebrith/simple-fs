@@ -16,7 +16,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    ret = simplefs::simplefs_chmode(path, S_IROTH | S_IXOTH);
+    ret = simplefs::simplefs_chmode(path, S_IWOTH | S_IXOTH);
 
     if (ret < 0)
     {
@@ -26,7 +26,7 @@ int main(int argc, char** argv)
     }
 
     path = "/dir/file";
-    ret = simplefs::simplefs_create(path, 0);
+    ret = simplefs::simplefs_mkdir(path, 0);
 
     if (ret < 0)
     {
