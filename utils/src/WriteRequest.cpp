@@ -10,7 +10,6 @@ int WriteRequest::getBaseLength()
 
 void WriteRequest::deserializeBase(const char* data)
 {
-	data += sizeof(unsigned int);
 	fd = *(const int*)data;
 	data += sizeof(int);
 	len = *(const unsigned int*)data;

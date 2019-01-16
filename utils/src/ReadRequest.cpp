@@ -6,7 +6,7 @@ using namespace simplefs;
 
 int ReadRequest::getBaseLength()
 {
-	return sizeof(unsigned int) + sizeof(int);
+	return sizeof(unsigned int) + sizeof(int) + sizeof(int);
 }
 
 void ReadRequest::deserializeBase(const char* data)
@@ -15,6 +15,7 @@ void ReadRequest::deserializeBase(const char* data)
 std::cout << "RECEIVED DESC: " << fd << std::endl;
 	data += sizeof(int);	
 	len = *(const int*)data;
+std::cout << "RECEIVED LEN: " << len << std::endl;
 }
 
 void ReadRequest::serialize(char* data)
@@ -25,6 +26,7 @@ void ReadRequest::serialize(char* data)
 std::cout << "SENT DESC: " << fd << std::endl;
 	data += sizeof(int);
 	*(int*)data = len;
+std::cout << "SENT LEN: " << len << std::endl;
 }
 
 int ReadRequest::getFD()

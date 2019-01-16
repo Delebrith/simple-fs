@@ -50,6 +50,7 @@ namespace simplefs
 		Inode* dirNavigate(const char* path, int& error);
 		Inode* getMember(Inode* parentDirInode, const char* name, int nameLen, int& error);
 		Inode* getParent(const char* path, int pathLen, int &error);
+		Inode* getInode(const char* path, int pathLen, int &error);
 		Inode* createInode(const char* path, int mode, int inodeFileType);
 
 		Packet* mkdir(const char* path, int permissions);

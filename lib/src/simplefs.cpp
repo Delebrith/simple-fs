@@ -9,6 +9,9 @@
 
 using namespace simplefs;
 
+#include <iostream>
+
+
 Packet* send(Packet& req)
 {
 	ClientConnector conn;
@@ -100,7 +103,19 @@ namespace simplefs
 		if (response == nullptr)
 			return -1;
 
-		return checkOkErrorResponse(response);
+		int fd = -1;
+
+		if (response->getId() == ErrorResponse::ID)
+		{
+			errno = dynamic_cast<ErrorResponse*>(response)->getErrno();
+		}
+		else if (response->getId() == FDResponse::ID)
+		{
+			fd = dynamic_cast<FDResponse*>(response)->getFD();
+		}
+	
+		delete response;
+		return fd;
 	}
 
 	EXTERN_C int simplefs_read(int fd, char* buf, int len)
@@ -118,14 +133,18 @@ namespace simplefs
 			ShmemPtr ptr = dynamic_cast<ShmemPtrResponse*>(response)->getPtr();
 			
 			void* shmemptr = shmat(ptr.shmid, 0, 0);
+std::cout << "SHMEMPTR " << shmemptr << std::endl;
 			if (shmemptr == (void*)-1)
 				return -1;
+
+std::cout << "[" << len << ":" << ptr.size << "]" << std::endl;
 
 			int toRead = len > ptr.size ? ptr.size : len;
 			memcpy(buf, (char*)shmemptr + ptr.offset, toRead);
 
 			shmdt(shmemptr);
 			delete response;
+std::cout << "READ: " << toRead;
 			return toRead;
 		}
 
@@ -185,7 +204,7 @@ namespace simplefs
 
 	EXTERN_C int simplefs_chmode(const char* path, mode_t mode)
 	{
-		OperationWithPathRequest req(OperationWithPathRequest::Create);
+		OperationWithPathRequest req(OperationWithPathRequest::Chmd);
 		req.setPath(path);
 		req.setMode(mode);
 	
