@@ -624,6 +624,9 @@ Packet* DiskOperations::unlink(const char* path)
 
 Packet* DiskOperations::read(FileDescriptor* fd, int len)
 {
+	if (fd->mode & FileDescriptor::M_READ)
+		return new ErrorResponse(EBADF);
+		
 std::cout << "READ_FUNC\n";
 	int bytesAvailable = std::max((int32_t)0,(int32_t)fd->inode->nodeSize-(int32_t)fd->position);
 std::cout << "Bytes avail. " << fd->inode->nodeSize << " " << fd->position << " " << len << std::endl;
