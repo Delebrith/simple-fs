@@ -263,7 +263,8 @@ Inode* DiskOperations::getMember(Inode* parentDirInode, const char* name, int na
 std::cout << "GET MEMBER: " << name << " len: " << nameLen << std::endl;
 	if (!(parentDirInode->permissions & Inode::PERM_R))
 	{
-		error = EPERM;
+		error = EACCES;
+		return nullptr;
 	}
 
 	Directory* dir = (Directory*)getShmAddr(parentDirInode->blockAddress);
@@ -513,7 +514,7 @@ std::cout << "OPENING: " << path;
 		return new ErrorResponse(EACCES);
 	}
 
-	if((flags & (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) == (FileDescriptor::M_READ | FileDescriptor::M_WRITE)) // RW Access
+	if(flags & FileDescriptor::M_READ && flags & FileDescriptor::M_WRITE) // RW Access
 	{
 std::cout <<"OPENING RW\n";
 		if(fdTable->inodeStatusMap.OpenForReadWrite(inodeToOpen))
@@ -704,17 +705,9 @@ int DiskOperations::linuxIntoFileDescriptorFlags(int flags)
 {
 	int outmode = 0;
 
-	if(flags & O_WRONLY) outmode |= FileDescriptor::M_WRITE;
-	else if(flags & O_RDWR) outmode |= FileDescriptor::M_WRITE | FileDescriptor::M_READ;
-	else outmode |= FileDescriptor::M_READ;
+	if(flags & O_CREAT) return FileDescriptor::M_CREATE | FileDescriptor::M_CREATE_PERM_R | FileDescriptor::M_CREATE_PERM_W;
 
-	if(flags & O_CREAT)
-	{
-		// let's permissions just be RW
-		outmode |= FileDescriptor::M_CREATE;
-		outmode |= FileDescriptor::M_CREATE_PERM_R;
-		outmode |= FileDescriptor::M_CREATE_PERM_W;
-	}
-
-	return outmode;
+	if(flags & O_WRONLY) return FileDescriptor::M_WRITE;
+	else if(flags & O_RDWR) return FileDescriptor::M_WRITE | FileDescriptor::M_READ;
+	else return FileDescriptor::M_READ;
 }
