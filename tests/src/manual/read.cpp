@@ -33,12 +33,11 @@ std::cout << "FD: " << fd << std::endl;
 			simplefs::simplefs_close(fd);
 			return -1;
 		}
-		printf("\n\n");
+		
 		for (int i = 0; i < ret; ++i)
 			printf("%02X", buf[i]);
 
 		printf("\n");
-		printf("\n\n");
 	}
 
 	simplefs::simplefs_close(fd);

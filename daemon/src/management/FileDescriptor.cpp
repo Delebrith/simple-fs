@@ -1,7 +1,5 @@
 #include "FileDescriptor.h"
 
-#include <iostream>
-
 int InodeStatusMap::InodeStatus(Inode* inode)
 {
 	int ret;
@@ -43,7 +41,6 @@ int InodeStatusMap::OpenForWriting(Inode* inode)
 	sem_wait(&statusMapSemaphore);
 		if (statusMap.find(inode) != statusMap.end())
 		{
-std::cout << "CANNOT OPEN FOR WRITING: " << statusMap[inode] << std::endl;
 			errno = EBADF; //ENOSYS;
 			ret = -1;
 		}
@@ -82,7 +79,6 @@ int InodeStatusMap::OpenForReading(Inode* inode)
 int InodeStatusMap::Close(Inode* inode)
 {
 	int ret;
-std::cout << "CLOSING INODE\n";
 	sem_wait(&statusMapSemaphore);
 		if (statusMap.find(inode) == statusMap.end())
 		{
@@ -102,7 +98,6 @@ std::cout << "CLOSING INODE\n";
 
 			if(statusMap[inode] == 0)
 			{
-				std::cout << "REMOVING CLOSED FROM STATUS MAP\n";
 				statusMap.erase(inode);
 			}
 			ret = 0;

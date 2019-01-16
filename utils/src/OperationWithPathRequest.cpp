@@ -34,7 +34,7 @@ char* OperationWithPathRequest::getRemainderBuffer()
 	path[pathLen] = 0;
 	return path;
 }
-#include <iostream>
+
 void OperationWithPathRequest::serialize(char* data)
 {
 	*(unsigned int*)data = type;
