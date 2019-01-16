@@ -347,9 +347,9 @@ Inode* DiskOperations::dirNavigate(const char* path, int& error)
 }
 
 
-Inode* DiskOperations::createInode(const char *path, int mode, int inodeFileType)
+Inode* DiskOperations::createInode(const char *path, int mode, int inodeFileType, int& error)
 {
-	size_t pathLength = strlen(path);
+/*	size_t pathLength = strlen(path);
 	if (pathLength < 1)
 	{
 		errno = ENOENT;
@@ -395,103 +395,85 @@ Inode* DiskOperations::createInode(const char *path, int mode, int inodeFileType
 			return nullptr;
 		}
 
-		Directory* parentDir = (Directory*)getShmAddr(parentInode->blockAddress);
-		InodeDirectoryEntry* dirList = parentDir->getInodesArray();
-		int i = 0;
-		while (i < parentDir->inodesCount)
-		{
-			if (strcmp(dirList[i].inodeName, folderName) == 0)
-			{
-				Inode* currentInode = getInodeById(dirList[i].inodeId);
-				if (currentInode->fileType == Inode::IT_FILE)
-				{
-					delete[] folderName;
-
-					errno = ENOTDIR;
-					return nullptr;
-				}
-				else if (path[endIndex] == '\0')
-				{
-					delete[] folderName;
-
-					errno = EEXIST;
-					return nullptr;
-				}
-				else
-				{
-					++endIndex;
-					startIndex = endIndex;
-					parentInodeId = currentInode->id;
-					break;
-				}
-			}
-
-			++i;
-		}
-		if (i == parentDir->inodesCount)
-		{
-			if ((parentInode->permissions & Inode::PERM_W) == 0)
-			{
-				delete[] folderName;
-
-				errno = EACCES;
-				return nullptr;
-			}
-
-			if (strcmp(folderName, "..") == 0 || strcmp(folderName, ".") == 0)
-			{
-				delete[] folderName;
-
-				errno = EEXIST;
-				return nullptr;
-			}
-			unsigned int inodeDataBlocks = 1;
-
-			if(inodeFileType == Inode::IT_DIRECTORY)
-			{
-				inodeDataBlocks = ceil(2 * sizeof(InodeDirectoryEntry) + sizeof(Directory), blockSize);
-			}
-
-			int inodeDataBlockAddress = usageMap->getFreeBlocks(inodeDataBlocks, false);
-			if (inodeDataBlockAddress == -1)
-			{
-				delete[] folderName;
-
-				errno = ENOSPC;
-				usageMap->unlock();
-				return nullptr;
-
-			}
-			usageMap->markBlocks(inodeDataBlockAddress, inodeDataBlockAddress+inodeDataBlocks, false, false);
-			usageMap->unlock();
-
-			Inode* inode = getFreeInodeAddr();
-			createNewInodeEntry(parentInodeId, inode, inodeDataBlockAddress, mode, inodeFileType);
-
-			parentDir = (Directory *)reallocate(parentInode, parentDir->getSize() + sizeof(InodeDirectoryEntry));
-			if (parentDir != nullptr)
-			{
-				parentDir->addEntry(InodeDirectoryEntry(inode->id, folderName));
-				parentInode->modificationDate = time(0);
-			}
-
-			sem_post(&inodeOpSemaphore);
-			delete[] folderName;
-			return inode;
-		}
+		
 		delete[] folderName;
 	}
 
 	errno = ENOSYS;
-	return nullptr;
+	return nullptr; */
+
+	int pathLen = strlen(path);
+
+	Inode* parent = getParent(path, pathLen, error);
+	if (parent == nullptr)
+	{
+std::cout << "PARENT NOT FOUND\n";
+		return nullptr;
+	}
+
+	const char* name = path + pathLen - getLastMemberLen(path, pathLen);
+
+	if (getMember(parent, name, getLastMemberLen(path, pathLen), error) != nullptr)
+	{
+std::cout << "ALREADY EXISTS\n";
+		error = EEXIST;
+		return nullptr;
+	}
+
+	if (error != ENOENT)
+	{
+		return nullptr;
+	}
+
+	Directory* parentDir = (Directory*)getShmAddr(parent->blockAddress);
+	InodeDirectoryEntry* dirList = parentDir->getInodesArray();
+	
+	if ((parent->permissions & Inode::PERM_W) == 0)
+	{
+		error = EACCES;
+		return nullptr;
+	}
+
+	unsigned int inodeDataBlocks = 1;
+
+	if(inodeFileType == Inode::IT_DIRECTORY)
+	{
+		inodeDataBlocks = ceil(2 * sizeof(InodeDirectoryEntry) + sizeof(Directory), blockSize);
+	}
+
+	usageMap->lock();
+	int inodeDataBlockAddress = usageMap->getFreeBlocks(inodeDataBlocks, false);
+	if (inodeDataBlockAddress == -1)
+	{
+		usageMap->unlock();
+
+		error = ENOSPC;
+		return nullptr;
+
+	}
+	usageMap->markBlocks(inodeDataBlockAddress, inodeDataBlockAddress+inodeDataBlocks, false, false);
+	usageMap->unlock();
+	
+	Inode* inode = getFreeInodeAddr();
+	createNewInodeEntry(parent->id, inode, inodeDataBlockAddress, mode, inodeFileType);
+	
+	parentDir = (Directory *)reallocate(parent, parentDir->getSize() + sizeof(InodeDirectoryEntry));
+	if (parentDir != nullptr)
+	{
+		parentDir->addEntry(InodeDirectoryEntry(inode->id, name));
+		parent->modificationDate = time(0);
+	}
+
+	return inode;
 }
 Packet* DiskOperations::mkdir(const char* path, int permissions)
 {
+	int error;
 	sem_wait(&inodeOpSemaphore);
-	Inode* ret = createInode(path, permissions, Inode::IT_DIRECTORY);
+	Inode* ret = createInode(path, permissions, Inode::IT_DIRECTORY, error);
 	sem_post(&inodeOpSemaphore);
 	if(ret == nullptr)
-		return new ErrorResponse(errno);
+		return new ErrorResponse(error);
 
 	return new OKResponse();
 }
@@ -535,6 +517,13 @@ Packet* DiskOperations::openUsingFileDescriptorFlags(const char* path, int flags
 {
 	int error;
 std::cout << "OPENING: " << path;
+
+	const char* name = path + strlen(path) - getLastMemberLen(path, strlen(path));
+	if ((strcmp(name, ".") == 0 || strcmp(name, "..") == 0 || strcmp(name, "/") == 0) && flags & FileDescriptor::M_CREATE)
+	{
+		return new ErrorResponse(EEXIST);
+	}	
+
 	sem_wait(&inodeOpSemaphore);
 	Inode* inodeToOpen = dirNavigate(path, error);
 
@@ -546,12 +535,12 @@ std::cout << "OPENING: " << path;
 			if(flags & FileDescriptor::M_CREATE_PERM_R) permissions |= Inode::PERM_R;
 			if(flags & FileDescriptor::M_CREATE_PERM_W) permissions |= Inode::PERM_W;
 			if(flags & FileDescriptor::M_CREATE_PERM_X) permissions |= Inode::PERM_X;
-			inodeToOpen = createInode(path, permissions, Inode::IT_FILE);
+			inodeToOpen = createInode(path, permissions, Inode::IT_FILE, error);
 
 			if(inodeToOpen == nullptr)
 			{
 				sem_post(&inodeOpSemaphore);
-				return new ErrorResponse(errno);
+				return new ErrorResponse(error);
 			}
 		}
 		else
