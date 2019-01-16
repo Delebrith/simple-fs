@@ -15,8 +15,6 @@ Connector::~Connector()
 		close(socketFD);
 }
 
-#include <iostream>
-
 int Connector::send(Packet& packet)
 {
 	int size = packet.getTotalLength();
@@ -24,8 +22,6 @@ int Connector::send(Packet& packet)
 
 	packet.serialize(buffer);
 
-std::cout << "BUF:" << buffer << std::endl;
-std::cout << "SENDING: " << size;
 	if (write(socketFD, buffer, size) == -1)
 	{
 		delete[] buffer;
@@ -35,26 +31,26 @@ std::cout << "SENDING: " << size;
 	delete[] buffer;
 	return 0;
 }
-#include <iostream>
+
 Packet* Connector::receive()
 {
 	unsigned int id;
-std::cout << "R\n";
+
 	if (read(socketFD, &id, sizeof(unsigned int)) == -1)
 		return nullptr;
-std::cout << "Read " << id << std::endl;
+
 	Packet* received = Packet::fromId(id);
 
 	if (received == nullptr)
 		return nullptr;
-std::cout << "Read2\n";
+
 	read(socketFD, basicBuffer, received->getBaseLength() - sizeof(unsigned int));
 
 	received->deserializeBase(basicBuffer);
-std::cout << "RECEIVING: " << received->getRemainderLength();
+	
 	if (received->getRemainderLength() == 0)
 		return received;
-std::cout << "Read3\n";
+
 	char* buf = received->getRemainderBuffer();
 	if (read(socketFD, buf, received->getRemainderLength()) == -1)
 	{
@@ -62,7 +58,6 @@ std::cout << "Read3\n";
 		return nullptr;
 	}
 
-std::cout << "Read4\n";
 	return received;
 }
 

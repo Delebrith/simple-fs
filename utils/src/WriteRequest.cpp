@@ -2,8 +2,6 @@
 
 using namespace simplefs;
 
-#include <iostream>
-
 int WriteRequest::getBaseLength()
 {
 	return sizeof(unsigned int) + 2 * sizeof(int);

@@ -5,7 +5,14 @@ then
 	if ls tests/auto/* 1> /dev/null 2>&1; 
 	then
 		for filename in `ls tests/auto`
+
+	n_all=0
+	n_ok=0
+
+		for filename in "tests/auto/*"
 		do
+			n_all=$(($n_all+1))
+
 			echo "Running $filename..."
 
 			./daemon 1> /dev/null &
@@ -20,6 +27,7 @@ then
 			if [[ $result -eq 0 ]];
 			then
 				echo -e "\e[32m>>>>>>>>[OK]\e[0m"
+			    n_ok=$(($n_ok+1))
 			elif [[ $result -eq -1 ]];
 			then
 				echo -e "\e[43m>>>>>>>>[FAILED]\e[0m"
@@ -29,6 +37,8 @@ then
 
 			kill $daemon_pid
 		done
+
+		echo "Tests passed: $n_ok of $n_all"
 	else
 		echo "No test files in tests/auto/"
 	fi

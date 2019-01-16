@@ -9,9 +9,6 @@
 
 using namespace simplefs;
 
-#include <iostream>
-
-
 Packet* send(Packet& req)
 {
 	ClientConnector conn;
@@ -133,18 +130,14 @@ namespace simplefs
 			ShmemPtr ptr = dynamic_cast<ShmemPtrResponse*>(response)->getPtr();
 			
 			void* shmemptr = shmat(ptr.shmid, 0, 0);
-std::cout << "SHMEMPTR " << shmemptr << std::endl;
 			if (shmemptr == (void*)-1)
 				return -1;
-
-std::cout << "[" << len << ":" << ptr.size << "]" << std::endl;
 
 			int toRead = len > ptr.size ? ptr.size : len;
 			memcpy(buf, (char*)shmemptr + ptr.offset, toRead);
 
 			shmdt(shmemptr);
 			delete response;
-std::cout << "READ: " << toRead;
 			return toRead;
 		}
 

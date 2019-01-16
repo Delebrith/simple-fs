@@ -10,9 +10,6 @@
 #include <unistd.h>
 #include <algorithm>	// std::max
 
-
-#include <iostream>
-
 using namespace simplefs;
 
 inline int ceil(int value, int divisor)
@@ -22,7 +19,6 @@ inline int ceil(int value, int divisor)
 
 unsigned char* DiskOperations::reallocate(Inode* inode, unsigned int newSize)
 {
-std::cout << "REALLOCATE FROM " << inode->nodeSize << " B TO " << newSize << " B\n";
 	unsigned int oldBlocks = ceil(inode->nodeSize, blockSize);
 	unsigned int newBlocks = ceil(newSize, blockSize);
 	unsigned char* toRet = nullptr;
@@ -188,8 +184,6 @@ Inode* DiskOperations::createNewInodeEntry(unsigned int parentInodeId, Inode* in
 	inode->deletionDate = 0;
 	inode->blockAddress = (unsigned int)inodeDataBlockAddress;
 
-std::cout << "CREATING INODE, parent: " << parentInodeId << " id: " << inode->id <<std::endl;
-
 	inode->nodeSize = 0;
 
 	if(inodeFileType == Inode::IT_DIRECTORY)
@@ -260,7 +254,6 @@ int getLastMemberLen(const char* path, int pathLen)
 
 Inode* DiskOperations::getMember(Inode* parentDirInode, const char* name, int nameLen, int& error)
 {
-std::cout << "GET MEMBER: " << name << " len: " << nameLen << std::endl;
 	if (!(parentDirInode->permissions & Inode::PERM_R))
 	{
 		error = EACCES;
@@ -273,11 +266,8 @@ std::cout << "GET MEMBER: " << name << " len: " << nameLen << std::endl;
 	if (name[nameLen - 1] == '/')
 		--len;
 
-std::cout << name << std::endl;
-
 	for (int i = 0; i < dir->inodesCount; ++i)
 	{
-std::cout << "IAN " << dir->getInodesArray()[i].inodeName << " id: " << dir->getInodesArray()[i].inodeId << std::endl;
 		if (strncmp(dir->getInodesArray()[i].inodeName, name, len) == 0 && dir->getInodesArray()[i].inodeName[len] == 0)
 			return getInodeById(dir->getInodesArray()[i].inodeId);
 	}
@@ -288,8 +278,6 @@ std::cout << "IAN " << dir->getInodesArray()[i].inodeName << " id: " << dir->get
 Inode* DiskOperations::getInode(const char* path, int pathLen, int &error)
 {
 	int lastMemberLen = getLastMemberLen(path, pathLen);
-
-std::cout << "GET INODE: " << path << " len: " << pathLen << " lastmemb: " << lastMemberLen << std::endl;
 
 	if (pathLen == 1 && path[0] == '/')
 		return getInodeById(0);
@@ -317,8 +305,6 @@ std::cout << "GET INODE: " << path << " len: " << pathLen << " lastmemb: " << la
 Inode* DiskOperations::getParent(const char* path, int pathLen, int &error)
 {
 	int lastMemberLen = getLastMemberLen(path, pathLen);
-
-std::cout << "GET PARENT: " << path << " len: " << pathLen << " lastmemb: " << lastMemberLen << std::endl;
 
 	if (pathLen - lastMemberLen == 1 && path[0] == '/')
 		return getInodeById(0);
@@ -357,24 +343,18 @@ Inode* DiskOperations::createInode(const char *path, int mode, int inodeFileType
 
 	Inode* parent = getParent(path, pathLen, error);
 	if (parent == nullptr)
-	{
-std::cout << "PARENT NOT FOUND\n";
 		return nullptr;
-	}
 
 	const char* name = path + pathLen - getLastMemberLen(path, pathLen);
 
 	if (getMember(parent, name, getLastMemberLen(path, pathLen), error) != nullptr)
 	{
-std::cout << "ALREADY EXISTS\n";
 		error = EEXIST;
 		return nullptr;
 	}
 
 	if (error != ENOENT)
-	{
 		return nullptr;
-	}
 
 	Directory* parentDir = (Directory*)getShmAddr(parent->blockAddress);
 	InodeDirectoryEntry* dirList = parentDir->getInodesArray();
@@ -470,7 +450,6 @@ Packet* DiskOperations::open(const char* path, int flags, int pid)
 Packet* DiskOperations::openUsingFileDescriptorFlags(const char* path, int flags, int pid)
 {
 	int error;
-std::cout << "OPENING: " << path;
 
 	const char* name = path + strlen(path) - getLastMemberLen(path, strlen(path));
 	if ((strcmp(name, ".") == 0 || strcmp(name, "..") == 0 || strcmp(name, "/") == 0) && flags & FileDescriptor::M_CREATE)
@@ -516,10 +495,9 @@ std::cout << "OPENING: " << path;
 		sem_post(&inodeOpSemaphore);
 		return new ErrorResponse(EACCES);
 	}
-std::cout << "OPENING WITH FLAGS " << flags << std::endl;
+	
 	if(flags & FileDescriptor::M_READ && flags & FileDescriptor::M_WRITE) // RW Access
 	{
-std::cout <<"OPENING RW\n";
 		if(fdTable->inodeStatusMap.OpenForReadWrite(inodeToOpen))
 		{
 			sem_post(&inodeOpSemaphore);
@@ -528,7 +506,6 @@ std::cout <<"OPENING RW\n";
 	}
 	else if(flags & FileDescriptor::M_READ) // Ronly Access
 	{
-std::cout <<"OPENING R\n";
 		if(fdTable->inodeStatusMap.OpenForReading(inodeToOpen))
 		{
 			sem_post(&inodeOpSemaphore);
@@ -537,7 +514,6 @@ std::cout <<"OPENING R\n";
 	}
 	else if(flags & FileDescriptor::M_WRITE) // Wonly Access
 	{
-std::cout <<"OPENING W\n";
 		if(fdTable->inodeStatusMap.OpenForWriting(inodeToOpen))
 		{
 			sem_post(&inodeOpSemaphore);
@@ -546,7 +522,7 @@ std::cout <<"OPENING W\n";
 	}
 
 	FileDescriptor* fd = fdTable->CreateDescriptor(pid, inodeToOpen, flags);
-std::cout << "CREAT_DESC, OFFSET: " << fd->position << "\n";
+	
 	FDResponse* fdres = new FDResponse();
 	fdres->setFD(fd->number);
 
@@ -624,17 +600,12 @@ Packet* DiskOperations::unlink(const char* path)
 	return new OKResponse;
 }
 
-#include <iostream>
-
 Packet* DiskOperations::read(FileDescriptor* fd, int len)
 {
-std::cout << "Reading, mode: " << fd->mode << std::endl;
 	if (!(fd->mode & FileDescriptor::M_READ))
 		return new ErrorResponse(EBADF);
 
-std::cout << "READ_FUNC\n";
 	int bytesAvailable = std::max((int32_t)0,(int32_t)fd->inode->nodeSize-(int32_t)fd->position);
-std::cout << "Bytes avail. " << fd->inode->nodeSize << " " << fd->position << " " << len << std::endl;
 	int bytesRead = std::min(bytesAvailable, len);
 
 	fd->inode->accessDate = time(0);
@@ -647,7 +618,6 @@ std::cout << "Bytes avail. " << fd->inode->nodeSize << " " << fd->position << " 
 	ShmemPtrResponse* shmemPtrResponse = new ShmemPtrResponse;
 	shmemPtrResponse->setPtr(shmemPtr);
 
-std::cout << "BytesRead: " << bytesRead << std::endl;
 	fd->position += bytesRead;
 
 	return shmemPtrResponse;
@@ -655,7 +625,6 @@ std::cout << "BytesRead: " << bytesRead << std::endl;
 
 Packet* DiskOperations::write(FileDescriptor* fd, int len)
 {
-std::cout << "Writing, mode: " << fd->mode << std::endl;
 	if (!(fd->mode & FileDescriptor::M_WRITE))
 		return new ErrorResponse(EBADF);
 
