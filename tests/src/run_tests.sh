@@ -4,27 +4,27 @@ if ls daemon 1> /dev/null 2>&1;
 then
 	if ls tests/auto/* 1> /dev/null 2>&1; 
 	then
-		for filename in "tests/auto/*"
+		for filename in `ls tests/auto`
 		do
 			echo "Running $filename..."
 
-			./daemon &
+			./daemon 1> /dev/null &
 			daemon_pid=$!
-			sleep 2
+			sleep 1
 
 			echo "Started daemon"
 
-			./$filename
+			./tests/auto/$filename
 	
 			result=$?
 			if [[ $result -eq 0 ]];
 			then
-				echo ">>>>>>>>[OK]"
-			elif [[ $result -eq 1 ]];
+				echo -e "\e[32m>>>>>>>>[OK]\e[0m"
+			elif [[ $result -eq -1 ]];
 			then
-				echo ">>>>>>>>[FAILED]"
+				echo -e "\e[43m>>>>>>>>[FAILED]\e[0m"
 			else
-				echo ">>>>>>>>[ERROR]"
+				echo -e "\e[31m>>>>>>>>[ERROR]\e[0m"
 			fi
 
 			kill $daemon_pid
