@@ -420,6 +420,9 @@ std::cout << "ALREADY EXISTS\n";
 Packet* DiskOperations::mkdir(const char* path, int permissions)
 {
 	int error;
+	if (strcmp(path, "/") == 0)
+		return new ErrorResponse(EEXIST);
+	
 	sem_wait(&inodeOpSemaphore);
 	Inode* ret = createInode(path, permissions, Inode::IT_DIRECTORY, error);
 	sem_post(&inodeOpSemaphore);
@@ -513,7 +516,7 @@ std::cout << "OPENING: " << path;
 		sem_post(&inodeOpSemaphore);
 		return new ErrorResponse(EACCES);
 	}
-
+std::cout << "OPENING WITH FLAGS " << flags << std::endl;
 	if(flags & FileDescriptor::M_READ && flags & FileDescriptor::M_WRITE) // RW Access
 	{
 std::cout <<"OPENING RW\n";
@@ -625,7 +628,8 @@ Packet* DiskOperations::unlink(const char* path)
 
 Packet* DiskOperations::read(FileDescriptor* fd, int len)
 {
-	if (fd->mode & FileDescriptor::M_READ)
+std::cout << "Reading, mode: " << fd->mode << std::endl;
+	if (!(fd->mode & FileDescriptor::M_READ))
 		return new ErrorResponse(EBADF);
 
 std::cout << "READ_FUNC\n";
@@ -651,7 +655,8 @@ std::cout << "BytesRead: " << bytesRead << std::endl;
 
 Packet* DiskOperations::write(FileDescriptor* fd, int len)
 {
-	if (fd->mode & FileDescriptor::M_WRITE == 0)
+std::cout << "Writing, mode: " << fd->mode << std::endl;
+	if (!(fd->mode & FileDescriptor::M_WRITE))
 		return new ErrorResponse(EBADF);
 
 	int newPos = fd->position + len;
@@ -705,9 +710,9 @@ int DiskOperations::linuxIntoFileDescriptorFlags(int flags)
 {
 	int outmode = 0;
 
-	if(flags & O_CREAT) return FileDescriptor::M_CREATE | FileDescriptor::M_CREATE_PERM_R | FileDescriptor::M_CREATE_PERM_W;
+	if(flags & O_CREAT) outmode = FileDescriptor::M_CREATE | FileDescriptor::M_CREATE_PERM_R | FileDescriptor::M_CREATE_PERM_W;
 
-	if(flags & O_WRONLY) return FileDescriptor::M_WRITE;
-	else if(flags & O_RDWR) return FileDescriptor::M_WRITE | FileDescriptor::M_READ;
-	else return FileDescriptor::M_READ;
+	if(flags & O_WRONLY) return outmode | FileDescriptor::M_WRITE;
+	else if(flags & O_RDWR) return outmode |FileDescriptor::M_WRITE | FileDescriptor::M_READ;
+	else return outmode | FileDescriptor::M_READ;
 }
