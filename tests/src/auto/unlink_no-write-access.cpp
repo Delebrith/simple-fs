@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
     char* dir_path = "/dir";
 
-    int ret = simplefs::simplefs_mkdir(dir_path, 0);
+    int ret = simplefs::simplefs_mkdir(dir_path, S_IWOTH | S_IROTH | S_IXOTH);
 
     if (ret < 0)
     {
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
     {
         int err = errno;
         std::cout << "Error: " << err << std::endl;
-        if (err == EACCES)
+        if (err == EPERM)
             return 0;
         return -1;
     }
