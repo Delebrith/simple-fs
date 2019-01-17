@@ -106,6 +106,8 @@ extern FileDescriptorTable* fdTable;
 
 void* executor(void* connector)
 {
+	simplefs::log::logInfo("Executor", "Started executor");
+	
 	ServerSessionConnector* conn = static_cast<ServerSessionConnector*>(connector);
 
 	Packet* request = conn->receive();
@@ -144,7 +146,7 @@ void* executor(void* connector)
 			static_cast<OperationWithPathRequest*>(request)->getMode());
 		break;
 	case LSeekRequest::ID:
-		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
+		fd = fdTable->getDescriptor(conn->getPid(), static_cast<LSeekRequest*>(request)->getFD());
 		if (fd == nullptr)
 			response = new ErrorResponse(EBADF);
 		else
@@ -155,7 +157,7 @@ void* executor(void* connector)
 		}
 		break;
 	case ReadRequest::ID:
-		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
+		fd = fdTable->getDescriptor(conn->getPid(), static_cast<ReadRequest*>(request)->getFD());
 		if (fd == nullptr)
 			response = new ErrorResponse(EBADF);
 		else
@@ -165,7 +167,7 @@ void* executor(void* connector)
 		}
 		break;
 	case WriteRequest::ID:
-		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
+		fd = fdTable->getDescriptor(conn->getPid(), static_cast<WriteRequest*>(request)->getFD());
 		if (fd == nullptr)
 			response = new ErrorResponse(EBADF);
 		else
@@ -175,7 +177,7 @@ void* executor(void* connector)
 		}
 		break;
 	case CloseRequest::ID:
-		fd = fdTable->getDescriptor(conn->getPid(), request->getId());
+		fd = fdTable->getDescriptor(conn->getPid(), static_cast<CloseRequest*>(request)->getFD());
 		if (fd == nullptr)
 			response = new ErrorResponse(EBADF);
 		else

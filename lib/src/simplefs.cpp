@@ -100,7 +100,19 @@ namespace simplefs
 		if (response == nullptr)
 			return -1;
 
-		return checkOkErrorResponse(response);
+		int fd = -1;
+
+		if (response->getId() == ErrorResponse::ID)
+		{
+			errno = dynamic_cast<ErrorResponse*>(response)->getErrno();
+		}
+		else if (response->getId() == FDResponse::ID)
+		{
+			fd = dynamic_cast<FDResponse*>(response)->getFD();
+		}
+	
+		delete response;
+		return fd;
 	}
 
 	EXTERN_C int simplefs_read(int fd, char* buf, int len)
@@ -185,7 +197,7 @@ namespace simplefs
 
 	EXTERN_C int simplefs_chmode(const char* path, mode_t mode)
 	{
-		OperationWithPathRequest req(OperationWithPathRequest::Create);
+		OperationWithPathRequest req(OperationWithPathRequest::Chmd);
 		req.setPath(path);
 		req.setMode(mode);
 	

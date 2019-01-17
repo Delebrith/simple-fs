@@ -10,7 +10,6 @@ int ShmemPtrResponse::getBaseLength()
 
 void ShmemPtrResponse::deserializeBase(const char* data)
 {
-	data += sizeof(unsigned int);
 	ptr = *(const ShmemPtr*)data;
 }
 

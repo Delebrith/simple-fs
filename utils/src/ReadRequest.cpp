@@ -2,16 +2,15 @@
 
 using namespace simplefs;
 
-
 int ReadRequest::getBaseLength()
 {
-	return sizeof(unsigned int) + sizeof(int);
+	return sizeof(unsigned int) + sizeof(int) + sizeof(int);
 }
 
 void ReadRequest::deserializeBase(const char* data)
 {
-	data += sizeof(unsigned int);
 	fd = *(const int*)data;
+	
 	data += sizeof(int);	
 	len = *(const int*)data;
 }

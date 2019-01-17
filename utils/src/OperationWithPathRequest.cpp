@@ -21,8 +21,6 @@ int OperationWithPathRequest::getRemainderLength()
 
 void OperationWithPathRequest::deserializeBase(const char* data)
 {
-	data += sizeof(unsigned int);
-
 	mode = *(const int*)data;
 	data += sizeof(int);
 
@@ -66,7 +64,7 @@ const char* OperationWithPathRequest::getPath()
 
 void OperationWithPathRequest::setPath(const char* path)
 {
-	delete[] path;
+	delete[] this->path;
 	pathLen = strlen(path);
 	this->path = new char[pathLen + 1];
 	strcpy(this->path, path);

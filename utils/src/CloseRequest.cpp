@@ -10,7 +10,6 @@ int CloseRequest::getBaseLength()
 
 void CloseRequest::deserializeBase(const char* data)
 {
-	data += sizeof(unsigned int);
 	fd = *(const int*)data;
 }
 

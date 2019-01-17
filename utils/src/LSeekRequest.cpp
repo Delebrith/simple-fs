@@ -10,7 +10,6 @@ int LSeekRequest::getBaseLength()
 
 void LSeekRequest::deserializeBase(const char* data)
 {
-	data += sizeof(unsigned int);
 	fd = *(const int*)data;
 	data += sizeof(int);
 	offset = *(const int*)data;

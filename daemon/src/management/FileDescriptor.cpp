@@ -79,7 +79,6 @@ int InodeStatusMap::OpenForReading(Inode* inode)
 int InodeStatusMap::Close(Inode* inode)
 {
 	int ret;
-
 	sem_wait(&statusMapSemaphore);
 		if (statusMap.find(inode) == statusMap.end())
 		{
@@ -170,6 +169,7 @@ int FileDescriptorTable::destroyDescriptor(FileDescriptor* fd)
 	sem_wait(&fdProcTableSemaphore);
 		int number = fd->number;
 		int pid = -1;
+		Inode* inode;
 
 		std::map<int, FileDescriptorProcessTable>::iterator itFdProcTable;
 
@@ -184,6 +184,7 @@ int FileDescriptorTable::destroyDescriptor(FileDescriptor* fd)
 				if(itFdByFdNumber->second == fd)
 				{
 					pid = itFdProcTable->first;
+					inode = itFdByFdNumber->second->inode;
 					break;
 				}
 			}
@@ -191,6 +192,10 @@ int FileDescriptorTable::destroyDescriptor(FileDescriptor* fd)
 
 		if (pid == -1) res = -1; // fd not found
 		else res = fdProcTable[pid].DestroyDescriptor(number);
+
+		if (res == 0)
+			inodeStatusMap.Close(inode);
+
 	sem_post(&fdProcTableSemaphore);
 
 

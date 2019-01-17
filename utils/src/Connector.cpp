@@ -35,6 +35,7 @@ int Connector::send(Packet& packet)
 Packet* Connector::receive()
 {
 	unsigned int id;
+
 	if (read(socketFD, &id, sizeof(unsigned int)) == -1)
 		return nullptr;
 
@@ -43,7 +44,10 @@ Packet* Connector::receive()
 	if (received == nullptr)
 		return nullptr;
 
-	read(socketFD, basicBuffer, received->getBaseLength());
+	read(socketFD, basicBuffer, received->getBaseLength() - sizeof(unsigned int));
+
+	received->deserializeBase(basicBuffer);
+	
 	if (received->getRemainderLength() == 0)
 		return received;
 

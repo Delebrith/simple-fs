@@ -58,8 +58,9 @@ void Directory::deleteEntry(unsigned int inodeId)
 			{
 				inodesArrayAddr[j] = inodesArrayAddr[j+1];
 			}
+
+			return;
 		}
-		break;
 	}
 	throw DiskException("No such inode in the directory");
 }
