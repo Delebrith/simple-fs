@@ -85,8 +85,7 @@ void logsParser(int reqInterruptedExecutors)
 void runner()
 {
     const char* filename = "/file";
-    const char* wrbuf = "buffer";
-    int buflen = strlen(wrbuf);
+    std::string wr = std::to_string(getpid());
 
     char rdbuf[10];
 
@@ -101,36 +100,69 @@ void runner()
             desc = simplefs::simplefs_create(filename, 0);
         } while (desc < 0);
 
-        ret = simplefs::simplefs_write(desc, wrbuf, buflen);
-        if (ret < 0)
-            printf("Error while writing: %d\n", ret);
-
         ret = simplefs::simplefs_close(desc);
         if (ret < 0)
+        {
             printf("Error while closing: %d\n", ret);
+            finishTesting(-2);
+        }
 
         do
         {
-            desc = simplefs::simplefs_open(filename, O_RDONLY);
+            desc = simplefs::simplefs_open(filename, O_RDWR);
         } while (desc < 0);
+
+        ret = simplefs::simplefs_write(desc, wr.c_str(), wr.length());
+        if (ret != wr.length())
+        {
+            printf("Error while writing: %d\n", ret);
+            finishTesting(-2);
+        }
+
+        ret = simplefs::simplefs_lseek(desc, 0, SEEK_SET);
+        if (ret < 0)
+        {
+            printf("Error while lseek: %d\n", ret);
+            finishTesting(-2);
+        }
 
         ret = simplefs::simplefs_read(desc, rdbuf, 10);
         if (ret < 0)
+        {
             printf("Error while reading: %d\n", ret);
+            finishTesting(-2);
+        }
 
         ret = simplefs::simplefs_close(desc);
         if (ret < 0)
+        {
             printf("Error while closing: %d\n", ret);
+            finishTesting(-2);
+        }
 
-        if (strcmp(wrbuf, rdbuf) != 0)
-            printf("Invalid content: %d\n", ret);
+        if (wr != rdbuf)
+        {
+            printf("Invalid content, expected \"%s\", got \"%s\"\n", wr.c_str(), rdbuf);
+            finishTesting(-2);
+        }
     }
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    int minimumLogInterruptions = 5;
-    int processes = 2;
+    int minimumLogInterruptions = 0;
+    int processes = 0;
+
+    if (argc == 3)
+    {
+        processes = atoi(argv[1]);
+        minimumLogInterruptions = atoi(argv[2]);
+    }
+    if (minimumLogInterruptions <= 0 || processes <= 0)
+    {
+        printf("Invalid arguments, usage: mp <process_n> <min_exeutor_interruptions_in_log_n>");
+        finishTesting(-2);
+    }
 
     for (int i = 0; i < processes; ++i)
     {
