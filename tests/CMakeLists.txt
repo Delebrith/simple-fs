@@ -66,4 +66,9 @@ target_link_libraries(unlink_no-write-access lib)
 target_link_libraries(unlink_path-not-found lib)
 target_link_libraries(unlink_shalh-or-dots lib)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/tests")
+
+add_executable(mp src/mp/mp.cpp)
+target_link_libraries(mp lib)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")

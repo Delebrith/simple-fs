@@ -36,6 +36,27 @@ then
 			kill $daemon_pid
 		done
 
+		if ls tests/mp 1> /dev/null 2>&1;
+		then
+			n_all=$(($n_all+1))
+
+			echo "Running multiaccess test..."
+
+			./daemon | ./tests/mp 4 4
+
+			result=$?
+			if [[ $result -eq 0 ]];
+			then
+				echo -e "\e[32m>>>>>>>>[OK]\e[0m"
+			    n_ok=$(($n_ok+1))
+			elif [[ $result -eq -1 ]];
+			then
+				echo -e "\e[43m>>>>>>>>[FAILED]\e[0m"
+			else
+				echo -e "\e[31m>>>>>>>>[ERROR]\e[0m"
+			fi
+		fi
+
 		echo "Tests passed: $n_ok of $n_all"
 	else
 		echo "No test files in tests/auto/"
