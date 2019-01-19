@@ -5,11 +5,18 @@
 #include <cstring>
 #include <unistd.h>
 #include <signal.h>
+#include <fcntl.h>
+
+#include "lib/src/simplefs.h"
 
 void finishTesting(int retCode)
 {
     signal(SIGQUIT, SIG_IGN);
     kill(-getpgrp(), SIGQUIT);
+
+    if (retCode < 0)
+        printf("FAILED\n");
+
     exit(retCode);
 }
 
@@ -70,12 +77,72 @@ void logsParser(int reqInterruptedExecutors)
                 startedRequests.erase(pidLocation);
             }
         }
+
+        printf("%s\n", line.c_str());
+    }
+}
+
+void runner()
+{
+    const char* filename = "/file";
+    const char* wrbuf = "buffer";
+    int buflen = strlen(wrbuf);
+
+    char rdbuf[10];
+
+    while(true)
+    {
+        memset(rdbuf, 0, 10);
+
+        int desc, ret;
+        
+        do
+        {
+            desc = simplefs::simplefs_create(filename, 0);
+        } while (desc < 0);
+
+        ret = simplefs::simplefs_write(desc, wrbuf, buflen);
+        if (ret < 0)
+            printf("Error while writing: %d\n", ret);
+
+        ret = simplefs::simplefs_close(desc);
+        if (ret < 0)
+            printf("Error while closing: %d\n", ret);
+
+        do
+        {
+            desc = simplefs::simplefs_open(filename, O_RDONLY);
+        } while (desc < 0);
+
+        ret = simplefs::simplefs_read(desc, rdbuf, 10);
+        if (ret < 0)
+            printf("Error while reading: %d\n", ret);
+
+        ret = simplefs::simplefs_close(desc);
+        if (ret < 0)
+            printf("Error while closing: %d\n", ret);
+
+        if (strcmp(wrbuf, rdbuf) != 0)
+            printf("Invalid content: %d\n", ret);
     }
 }
 
 int main()
 {
-    logsParser(1);
+    int minimumLogInterruptions = 5;
+    int processes = 2;
 
-    return 0;
+    for (int i = 0; i < processes; ++i)
+    {
+        if (!fork())
+        {
+            sleep(1);
+            runner();
+        }
+    }
+    
+    logsParser(5);
+
+    printf("OK\n");
+    finishTesting(0);
 }
